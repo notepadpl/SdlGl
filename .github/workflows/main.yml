@@ -30,7 +30,11 @@ jobs:
             -DASSIMP_BUILD_OBJ_IMPORTER=ON \
             -DASSIMP_BUILD_GLTF_IMPORTER=OFF \
             -DASSIMP_NO_EXPORT=ON \
-            -DCMAKE_BUILD_TYPE=Release .
+            -DASSIMP_BUILD_ZLIB=ON \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=../emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
+            -DCMAKE_CROSSCOMPILING_EMULATOR=../emsdk/node/22.16.0_64bit/bin/node \
+            .
           emmake make -j
         shell: bash
 
@@ -49,8 +53,8 @@ jobs:
             -s MIN_WEBGL_VERSION=1 \
             -s MAX_WEBGL_VERSION=1 \
             --preload-file asserts \
-            -sALLOW_MEMORY_GROWTH=1 \
-            -sASYNCIFY \
+            -s ALLOW_MEMORY_GROWTH=1 \
+            -s ASYNCIFY \
             -o dist/index.html
         shell: bash
 
