@@ -32,6 +32,7 @@ jobs:
             -DASSIMP_BUILD_SHARED_LIBS=OFF \
             -DASSIMP_NO_EXPORT=ON \
             -DASSIMP_BUILD_ZLIB=ON \
+            -DASSIMP_BUILD_TESTS=OFF \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE=../emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
             -DCMAKE_CROSSCOMPILING_EMULATOR=../emsdk/node/22.16.0_64bit/bin/node \
