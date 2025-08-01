@@ -174,7 +174,7 @@ bool init() {
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-    mesh = loadMeshFromAssimp("asserts/Earth 2K.obj", materials, "asserts/");
+    mesh = loadMeshFromAssimp("asserts/Harpy.fbx", materials, "asserts/");
     printf("Loaded mesh: verts=%zu, indices=%zu\n", mesh.vertices.size() / 8, mesh.indices.size());
 
     GLuint vsId = compileShader(GL_VERTEX_SHADER, vs);
