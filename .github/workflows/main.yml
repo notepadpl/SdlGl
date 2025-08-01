@@ -58,9 +58,9 @@ jobs:
             -Iassimp/code \
             -Lassimp/lib \
             -lassimp \
-            -lz \
             -s WASM=1 \
             -s USE_SDL=2 \
+            -s USE_ZLIB=1 \
             -s FULL_ES2=1 \
             -s MIN_WEBGL_VERSION=1 \
             -s MAX_WEBGL_VERSION=1 \
