@@ -90,7 +90,7 @@ GLuint compileShader(GLenum type, const char* source) {
     }
     return shader;
 }
-Mesh loadAllMeshesFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
+Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
     Mesh mesh;
     Assimp::Importer importer;
 
