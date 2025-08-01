@@ -49,7 +49,7 @@ void main() {
     mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
     mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
     vec3 p = Ry * Rx * aPos;
-    gl_Position = vec4(p * 1.5 + vec3(0.0, 0.0, -1.0), 1.0);
+    gl_Position = vec4(p * 0.5 + vec3(0.0, 0.0, -1.0), 1.0);
 
     vUV = aUV;
     vNormal = normalize(Ry * Rx * aNormal);
@@ -65,8 +65,8 @@ uniform sampler2D tex;
 
 void main() {
     vec3 lightDir = normalize(vec3(0.5, 1.0, 0.75));
-float diff = 1.0;
-    //float diff = max(dot(vNormal, lightDir), 0.0);
+//float diff = 1.0;
+    float diff = max(dot(vNormal, lightDir), 0.0);
 
     vec4 texColor = texture2D(tex, vUV);
     vec3 color = texColor.rgb * diff;
@@ -136,6 +136,16 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
         vertexOffset += m->mNumVertices;
 
         // Możesz tu też wczytać materiały dla każdego mesha, jeśli chcesz
+        // Wczytaj materiały
+for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+    aiMaterial* mat = scene->mMaterials[i];
+    aiString texPath;
+    if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+        std::string textureFile = texPath.C_Str();
+        materials[textureFile].texPath = textureFile;
+    }
+}
+        
     }
 
     // Normalizacja modelu — to możesz przenieść z Twojej oryginalnej funkcji
