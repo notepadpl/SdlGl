@@ -127,7 +127,7 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
         for (unsigned int j = 0; j < face.mNumIndices; ++j)
             mesh.indices.push_back(face.mIndices[j]);
     }
-
+/*
     // Normalize model (center & scale)
     float minX=1e10f, maxX=-1e10f, minY=1e10f, maxY=-1e10f, minZ=1e10f, maxZ=-1e10f;
     for (size_t i = 0; i < mesh.vertices.size(); i += 8) {
@@ -158,7 +158,7 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
             materialsOut["default"] = material;
         }
     }
-
+*/
     return mesh;
 }
 
