@@ -28,6 +28,8 @@ jobs:
           emcmake cmake \
             -DASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT=OFF \
             -DASSIMP_BUILD_OBJ_IMPORTER=ON \
+            -DASSIMP_BUILD_OBJ_IMPORTER=ON \
+            -DASSIMP_BUILD_FBX_IMPORTER=ON \
             -DASSIMP_BUILD_GLTF_IMPORTER=OFF \
             -DASSIMP_BUILD_SHARED_LIBS=OFF \
             -DASSIMP_NO_EXPORT=ON \
