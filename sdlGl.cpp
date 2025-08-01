@@ -91,7 +91,7 @@ bool init() {
     glViewport(0, 0, 640, 480);
     glClearColor(0.1f, 0.9f, 0.1f, 1.0f);
 
-    mesh = loadMeshFromAssimp("asserts/cube2.obj");
+    mesh = loadMeshFromAssimp("asserts/cube.obj");
     printf("Vertices: %zu, Indices: %zu\n", mesh.vertices.size()/3, mesh.indices.size()/3);
 
     GLuint vsId = compileShader(GL_VERTEX_SHADER, vs);
