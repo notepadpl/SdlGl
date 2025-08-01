@@ -78,6 +78,33 @@ Mesh loadMeshFromAssimp(const char* path) {
             m.indices.push_back(face.mIndices[j]);
         }
     }
+// Oblicz bounding box
+float minX = 1e10f, maxX = -1e10f;
+float minY = 1e10f, maxY = -1e10f;
+float minZ = 1e10f, maxZ = -1e10f;
+
+for (size_t i = 0; i < mesh.vertices.size(); i += 3) {
+    float x = mesh.vertices[i];
+    float y = mesh.vertices[i + 1];
+    float z = mesh.vertices[i + 2];
+
+    if (x < minX) minX = x; if (x > maxX) maxX = x;
+    if (y < minY) minY = y; if (y > maxY) maxY = y;
+    if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+}
+
+// Oblicz środek i zakres
+float centerX = (minX + maxX) / 2.0f;
+float centerY = (minY + maxY) / 2.0f;
+float centerZ = (minZ + maxZ) / 2.0f;
+float maxExtent = std::max({ maxX - minX, maxY - minY, maxZ - minZ });
+
+// Normalizuj
+for (size_t i = 0; i < mesh.vertices.size(); i += 3) {
+    mesh.vertices[i + 0] = (mesh.vertices[i + 0] - centerX) / maxExtent;
+    mesh.vertices[i + 1] = (mesh.vertices[i + 1] - centerY) / maxExtent;
+    mesh.vertices[i + 2] = (mesh.vertices[i + 2] - centerZ) / maxExtent;
+}
 
     return m;
 }
