@@ -19,7 +19,7 @@ jobs:
           ./emsdk install 3.1.65
           ./emsdk activate 3.1.65
         shell: bash
-
+ 
       - name: Build Assimp (Emscripten)
         run: |
           source ./emsdk/emsdk_env.sh
@@ -40,6 +40,13 @@ jobs:
           emmake make -j
         shell: bash
 
+      - name: Check Assimp build output
+        run: |
+          ls -l assimp
+          ls -l assimp/lib
+          ls -l assimp/bin
+        shell: bash
+  
       - name: Compile C++ to WebAssembly with Assimp
         run: |
           source ./emsdk/emsdk_env.sh
@@ -59,7 +66,6 @@ jobs:
             -s ASYNCIFY \
             -o dist/index.html
         shell: bash
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         if: github.ref == 'refs/heads/main'
