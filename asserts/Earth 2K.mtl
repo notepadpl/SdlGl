@@ -10,7 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd AtmosphereTexture.png
+map_Kd Bump_2K.png
 
 newmtl Clouds
 Ns 96.078431
@@ -21,7 +21,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd CloudsTexture.png
+map_Kd Clouds_2K.png
 
 newmtl Earth
 Ns 96.078431
@@ -32,4 +32,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd EarthTexture.jpg
+map_Kd Diffuse_2K.png
