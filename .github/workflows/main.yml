@@ -44,7 +44,7 @@ jobs:
         run: |
           ls -l assimp
           ls -l assimp/lib
-          ls -l assimp/bin
+          ls -l assimp/lib
         shell: bash
   
       - name: Compile C++ to WebAssembly with Assimp
