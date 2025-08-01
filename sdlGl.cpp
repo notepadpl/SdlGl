@@ -26,7 +26,9 @@ const char* vs = R"(
     void main() {
         float c = cos(uAngle), s = sin(uAngle);
         mat3 rot = mat3(c, -s, 0, s, c, 0, 0, 0, 1);
-        gl_Position = vec4(rot * (aPos - vec3(0.5)), 1.0);
+gl_Position = vec4(rot * (aPos * 0.01), 1.0); // skaluj ręcznie
+
+       // gl_Position = vec4(rot * (aPos - vec3(0.5)), 1.0);
     }
 )";
 const char* fs = R"(
