@@ -26,7 +26,7 @@ const char* vs = R"(
     void main() {
         float c = cos(uAngle), s = sin(uAngle);
         mat3 rot = mat3(c, -s, 0, s, c, 0, 0, 0, 1);
-gl_Position = vec4(rot * (aPos * 0.1), 1.0); // skaluj ręcznie
+gl_Position = vec4(rot * (aPos * 1.0), 1.0); // skaluj ręcznie
 
        // gl_Position = vec4(rot * (aPos - vec3(0.5)), 1.0);
     }
@@ -77,7 +77,7 @@ Mesh loadMeshFromAssimp(const char* path) {
         for (unsigned int j = 0; j < face.mNumIndices; ++j) {
             m.indices.push_back(face.mIndices[j]);
         }
-    } /* jak nie widac modelu a wczytalo 
+    } 
 // Oblicz bounding box
 float minX = 1e10f, maxX = -1e10f;
 float minY = 1e10f, maxY = -1e10f;
@@ -105,7 +105,7 @@ for (size_t i = 0; i < mesh.vertices.size(); i += 3) {
     mesh.vertices[i + 1] = (mesh.vertices[i + 1] - centerY) / maxExtent;
     mesh.vertices[i + 2] = (mesh.vertices[i + 2] - centerZ) / maxExtent;
 }
-*/
+
     return m;
 }
 
