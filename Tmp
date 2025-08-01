@@ -1,0 +1,470 @@
+Przejdź do treści
+
+ChatGPT
+
+Zaloguj się
+Powiedziałeś(-aś):
+#include <SDL.h>
+#include <GLES2/gl2.h>
+#include <emscripten.h>
+#include "loadObjMtl.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+SDL_Window* window;
+SDL_GLContext glContext;
+Mesh mesh;
+GLuint program, vbo, ibo, tex = 0;
+std::unordered_map<std::string, Material> materials;
+
+float rotX=0, rotY=0;
+bool mouseDown=false;
+int lastX, lastY;
+
+const char* vs = R"(
+attribute vec3 aPos;
+attribute vec2 aUV;
+attribute vec3 aNormal;
+
+varying vec2 vUV;
+varying vec3 vNormal;
+
+uniform float rotX, rotY;
+
+void main(){
+    float cx = cos(rotX), sx=sin(rotX);
+    float cy = cos(rotY), sy=sin(rotY);
+    mat3 Rx = mat3(1,0,0, 0,cx,-sx, 0,sx,cx);
+    mat3 Ry = mat3(cy,0,sy, 0,1,0, -sy,0,cy);
+    vec3 p = Ry * Rx * aPos;
+    gl_Position = vec4(p * 0.5 + vec3(0.0, 0.0, -1.0), 1.0);
+
+    vUV = aUV;
+    vNormal = normalize(Ry * Rx * aNormal);
+}
+)";
+
+const char* fs = R"(
+precision mediump float;
+
+varying vec2 vUV;
+varying vec3 vNormal;
+uniform sampler2D tex;
+
+void main() {
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.75));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+
+    vec4 texColor = texture2D(tex, vUV);
+    vec3 color = texColor.rgb * diff;
+
+    gl_FragColor = vec4(color, texColor.a);
+}
+)";
+
+GLuint compileShader(GLenum type, const char* source) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
+
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        printf("Shader compilation failed: %s\n", infoLog);
+        return 0;
+    }
+    return shader;
+}
+
+bool init(){
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION,2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    window = SDL_CreateWindow("Obj+Mtl Loader", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800,600, SDL_WINDOW_OPENGL);
+    glContext = SDL_GL_CreateContext(window);
+    glViewport(0,0,800,600);
+
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(1.0f, 0.1f, 0.1f, 1.0f);
+
+    mesh = loadObjMtl("asserts/cube.obj", materials, "asserts/");
+    printf("Verts: %zu, idx: %zu\n", mesh.vertices.size()/8, mesh.indices.size());
+
+    GLuint vsId = compileShader(GL_VERTEX_SHADER, vs);
+    GLuint fsId = compileShader(GL_FRAGMENT_SHADER, fs);
+    program = glCreateProgram();
+    glAttachShader(program, vsId);
+    glAttachShader(program, fsId);
+    glBindAttribLocation(program, 0, "aPos");
+    glBindAttribLocation(program, 1, "aUV");
+    glBindAttribLocation(program, 2, "aNormal");
+    glLinkProgram(program);
+
+    glGenBuffers(1,&vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size()*sizeof(float), mesh.vertices.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1,&ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size()*sizeof(unsigned int), mesh.indices.data(), GL_STATIC_DRAW);
+
+    Material& mat = materials.begin()->second;
+    int w,h,comp;
+    unsigned char* data = stbi_load((std::string("asserts/")+mat.texPath).c_str(), &w,&h,&comp,4);
+    if (!data) {
+        printf("Failed to load texture: %s\n", (std::string("asserts/")+mat.texPath).c_str());
+        return false;
+    }
+    glGenTextures(1,&tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,w,h,0,GL_RGBA,GL_UNSIGNED_BYTE,data);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    stbi_image_free(data);
+
+    glUseProgram(program);
+    glUniform1i(glGetUniformLocation(program, "tex"), 0);
+
+    return true;
+}
+
+void render(){
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(program);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)(3*sizeof(float)));
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2,3,GL_FLOAT,GL_FALSE,8*sizeof(float),(void*)(5*sizeof(float)));
+
+    glUniform1f(glGetUniformLocation(program,"rotX"),rotX);
+    glUniform1f(glGetUniformLocation(program,"rotY"),rotY);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex);
+
+    glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+
+    SDL_GL_SwapWindow(window);
+}
+
+void loop(){
+    SDL_Event e;
+    while(SDL_PollEvent(&e)){
+        if (e.type == SDL_QUIT) emscripten_cancel_main_loop();
+        else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){
+            mouseDown = true; lastX = e.button.x; lastY = e.button.y;
+        } else if(e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT){
+            mouseDown = false;
+        } else if(e.type == SDL_MOUSEMOTION && mouseDown){
+            rotY += (e.motion.x - lastX) * 0.01f;
+            rotX += (e.motion.y - lastY) * 0.01f;
+            lastX = e.motion.x; lastY = e.motion.y;
+        }
+    }
+    render();
+}
+
+int main(){
+    if (!init()) {
+        printf("Initialization failed!\n");
+        return 1;
+    }
+    emscripten_set_main_loop(loop, 0, 1);
+    return 0;
+}
+Wyciąg mi z tego kodu wątek odpowiedzialny za ładowanie tekstury 
+ChatGPT powiedział:
+Wątek odpowiedzialny za ładowanie tekstury znajduje się w funkcji init(). Obejmuje on następujące linie:
+
+🔹 Fragment ładowania tekstury:
+Material& mat = materials.begin()->second;
+int w, h, comp;
+unsigned char* data = stbi_load((std::string("asserts/") + mat.texPath).c_str(), &w, &h, &comp, 4);
+if (!data) {
+    printf("Failed to load texture: %s\n", (std::string("asserts/") + mat.texPath).c_str());
+    return false;
+}
+glGenTextures(1, &tex);
+glBindTexture(GL_TEXTURE_2D, tex);
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+stbi_image_free(data);
+🔍 Co robi ten fragment?
+Material& mat = materials.begin()->second;
+Pobiera pierwszą strukturę Material z mapy materials (wcześniej załadowaną z .mtl).
+
+stbi_load(...)
+Ładuje obrazek (teksturę) z pliku do pamięci jako tablicę bajtów RGBA.
+
+glGenTextures(...) i glBindTexture(...)
+Tworzy i wiąże obiekt tekstury w OpenGL.
+
+glTexImage2D(...)
+Przesyła dane obrazu do GPU.
+
+glTexParameteri(...)
+Ustawia sposób filtrowania tekstury (LINEAR = interpolacja).
+
+stbi_image_free(data);
+Zwalnia pamięć zaalokowaną na dane obrazu.
+
+Jeśli chcesz wyodrębnić ten kod jako osobną funkcję np. bool loadTexture(const std::string& path), mogę Ci to przerobić.
+
+Powiedziałeś(-aś):
+Jak dasz radę a jak miał załadować fbx teksturę jak mtl ?
+ChatGPT powiedział:
+✅ Odpowiedź krótka:
+Plik FBX przechowuje tekstury wewnętrznie (jako ścieżki do plików) — podobnie jak MTL, ale w innym formacie i zwykle bardziej złożony (binarny lub ASCII).
+Aby załadować teksturę z FBX, potrzebujesz parsera FBX, np.:
+
+Assimp (najprostszy sposób),
+
+FBX SDK od Autodesk (oficjalny, ale ciężki i niekompatybilny z WebAssembly),
+
+lub własny parser (trudne, niezalecane).
+
+🔍 Porównanie: MTL vs FBX
+Cecha	.MTL (dla .OBJ)	.FBX
+Format	Tekstowy, prosty	Binarny/tekstowy, złożony
+Tekstury	map_Kd texture.jpg	Zawarte jako ścieżki do plików
+Powiązanie z geometrią	Przez usemtl w .obj	Wbudowane w strukturę FBX
+Ładowanie	Łatwe — wystarczy własny parser	Trudne — wymaga biblioteki/parsers
+📦 Jak załadować teksturę z FBX – z Assimp:
+Jeśli używasz Assimp (Open Asset Import Library), to wygląda to tak:
+
+🔸 Pseudokod w C++:
+Assimp::Importer importer;
+const aiScene* scene = importer.ReadFile("model.fbx", aiProcess_Triangulate | aiProcess_FlipUVs);
+
+if (scene && scene->HasMaterials()) {
+    aiMaterial* material = scene->mMaterials[0]; // pierwszy materiał
+    aiString texPath;
+    if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+        std::string fullPath = "asserts/" + std::string(texPath.C_Str());
+        // załaduj teksturę jak w stbi_load(...)
+    }
+}
+🧠 Jeśli nie używasz Assimp:
+FBX sam w sobie to bardzo skomplikowany format. Nie parsuj go ręcznie — zamiast tego:
+
+Użyj narzędzia offline (np. Blender) do eksportu FBX → OBJ + MTL.
+
+Lub skorzystaj z Assimp i odczytaj tekstury z aiMaterial.
+
+✅ TL;DR — Jak załadować teksturę z FBX jak z MTL?
+Nie da się łatwo jak w .mtl przez map_Kd. Ale:
+
+FBX zawiera ścieżki do tekstur,
+
+możesz je odczytać przez Assimp (aiMaterial->GetTexture(...)),
+
+dalej używasz stbi_load(...) tak samo jak przy .mtl.
+
+Chcesz przykład loadFbx() przy użyciu Assimp?
+
+Powiedziałeś(-aś):
+Tak
+ChatGPT powiedział:
+Świetnie! Poniżej masz kompletny przykład funkcji loadFbx(), która:
+
+Wczytuje plik .fbx (lub inny format obsługiwany przez Assimp),
+
+Pobiera dane siatki i tekstury,
+
+Tworzy strukturę Mesh (taką jak w Twoim kodzie),
+
+Ładuje teksturę z pliku (np. JPG/PNG) za pomocą stb_image.
+
+✅ Zakładam:
+Masz własny typ Mesh z vertices i indices.
+
+Chcesz mieć też teksturę z materiału FBX.
+
+Masz zaincludowane: assimp/Importer.hpp, assimp/scene.h, assimp/postprocess.h.
+
+🧩 Struktury i pomocnicze elementy:
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include <vector>
+#include <string>
+
+#include "stb_image.h"
+
+struct Mesh {
+    std::vector<float> vertices; // format: pos(3), uv(2), normal(3)
+    std::vector<unsigned int> indices;
+    std::string texturePath;
+};
+🔧 Funkcja loadFbx():
+Mesh loadFbx(const std::string& path, const std::string& baseDir) {
+    Mesh mesh;
+    Assimp::Importer importer;
+
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+    if (!scene || !scene->HasMeshes()) {
+        printf("Assimp error: %s\n", importer.GetErrorString());
+        return mesh;
+    }
+
+    aiMesh* aMesh = scene->mMeshes[0];
+    for (unsigned int i = 0; i < aMesh->mNumVertices; ++i) {
+        aiVector3D pos = aMesh->mVertices[i];
+        aiVector3D uv = aMesh->HasTextureCoords(0) ? aMesh->mTextureCoords[0][i] : aiVector3D(0,0,0);
+        aiVector3D norm = aMesh->HasNormals() ? aMesh->mNormals[i] : aiVector3D(0,0,1);
+
+        mesh.vertices.insert(mesh.vertices.end(), {
+            pos.x, pos.y, pos.z,
+            uv.x, uv.y,
+            norm.x, norm.y, norm.z
+        });
+    }
+
+    for (unsigned int i = 0; i < aMesh->mNumFaces; ++i) {
+        const aiFace& face = aMesh->mFaces[i];
+        for (unsigned int j = 0; j < face.mNumIndices; ++j)
+            mesh.indices.push_back(face.mIndices[j]);
+    }
+
+    // Tekstura z materiału
+    if (scene->HasMaterials()) {
+        aiMaterial* mat = scene->mMaterials[aMesh->mMaterialIndex];
+        aiString texPath;
+        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            mesh.texturePath = baseDir + std::string(texPath.C_Str());
+        }
+    }
+
+    return mesh;
+}
+📦 Ładowanie tekstury (jak u Ciebie):
+Po loadFbx():
+
+int w,h,comp;
+unsigned char* data = stbi_load(mesh.texturePath.c_str(), &w, &h, &comp, 4);
+if (!data) {
+    printf("Failed to load texture: %s\n", mesh.texturePath.c_str());
+    // Obsłuż błąd
+}
+
+glGenTextures(1, &tex);
+glBindTexture(GL_TEXTURE_2D, tex);
+glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+stbi_image_free(data);
+✅ Przykład użycia:
+Mesh mesh = loadFbx("assets/model.fbx", "assets/");
+❗ Uwaga
+Assimp wspiera wiele typów tekstur: aiTextureType_DIFFUSE, SPECULAR, NORMALS, itd. Jeśli chcesz obsłużyć więcej — mogę rozbudować ten przykład.
+
+Chcesz też, żebym przerobił Twoją funkcję loadObjMtl() na loadFbx()?
+
+Powiedziałeś(-aś):
+Tak
+ChatGPT powiedział:
+Super! Poniżej przerobiłem Twoją funkcję loadObjMtl(...) tak, by działała jako loadFbx(...) z użyciem Assimp, analogicznie do stylu i struktury Twojego kodu.
+
+✅ Funkcja loadFbx(...) – zamiennik loadObjMtl(...)
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
+#include "stb_image.h"
+#include <unordered_map>
+
+struct Material {
+    std::string texPath;
+};
+
+Mesh loadFbx(const std::string& fbxPath, std::unordered_map<std::string, Material>& materials, const std::string& baseDir) {
+    Mesh mesh;
+    materials.clear();
+
+    Assimp::Importer importer;
+
+    const aiScene* scene = importer.ReadFile(fbxPath,
+        aiProcess_Triangulate |
+        aiProcess_FlipUVs |
+        aiProcess_GenNormals |
+        aiProcess_CalcTangentSpace);
+
+    if (!scene || !scene->HasMeshes()) {
+        printf("Assimp failed to load FBX: %s\n", importer.GetErrorString());
+        return mesh;
+    }
+
+    aiMesh* aMesh = scene->mMeshes[0];
+
+    for (unsigned int i = 0; i < aMesh->mNumVertices; ++i) {
+        aiVector3D pos = aMesh->mVertices[i];
+        aiVector3D uv = aMesh->HasTextureCoords(0) ? aMesh->mTextureCoords[0][i] : aiVector3D(0.0f, 0.0f, 0.0f);
+        aiVector3D norm = aMesh->HasNormals() ? aMesh->mNormals[i] : aiVector3D(0.0f, 0.0f, 1.0f);
+
+        mesh.vertices.insert(mesh.vertices.end(), {
+            pos.x, pos.y, pos.z,
+            uv.x, uv.y,
+            norm.x, norm.y, norm.z
+        });
+    }
+
+    for (unsigned int i = 0; i < aMesh->mNumFaces; ++i) {
+        aiFace& face = aMesh->mFaces[i];
+        for (unsigned int j = 0; j < face.mNumIndices; ++j) {
+            mesh.indices.push_back(face.mIndices[j]);
+        }
+    }
+
+    // Wczytaj materiał + teksturę
+    if (scene->HasMaterials()) {
+        aiMaterial* mat = scene->mMaterials[aMesh->mMaterialIndex];
+        aiString texPath;
+        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            Material m;
+            m.texPath = texPath.C_Str();
+            materials["default"] = m;
+            printf("Texture path from FBX: %s\n", m.texPath.c_str());
+        } else {
+            printf("No diffuse texture found in FBX material.\n");
+        }
+    }
+
+    return mesh;
+}
+✅ Jak używać loadFbx() zamiast loadObjMtl() w init()
+Zmień ten wiersz:
+
+mesh = loadObjMtl("asserts/cube.obj", materials, "asserts/");
+na:
+
+mesh = loadFbx("asserts/model.fbx", materials, "asserts/");
+Pamiętaj: upewnij się, że Twoje .fbx ma teksturę (diffuse) i że ścieżki względne w pliku FBX działają.
+
+📦 Co jeszcze warto wiedzieć?
+Assimp nie działa natywnie z Emscripten/WebAssembly — trzeba go skompilować z odpowiednimi flagami lub korzystać z prekompilowanej wersji.
+
+FBX zapisany w ASCII z Blenderem ma większe szanse na działanie w Assimp niż binarny FBX.
+
+Chcesz, żebym dostosował też loader do FBX z wieloma teksturami lub materiałami?
+Daj znać — to tylko kilka linijek więcej.
+
+
+
+
+
+
+Nie wybrano plikuNie wybrano pliku
+ChatGPT może popełniać błędy. Sprawdź ważne informacje. Zobacz Preferencje dotyczące plików cookie.
