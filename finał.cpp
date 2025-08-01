@@ -90,8 +90,63 @@ GLuint compileShader(GLenum type, const char* source) {
     }
     return shader;
 }
+Mesh loadAllMeshesFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
+    Mesh mesh;
+    Assimp::Importer importer;
 
-Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
+    const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
+
+    if (!scene || !scene->HasMeshes()) {
+        printf("Assimp error: %s\n", importer.GetErrorString());
+        return mesh;
+    }
+
+    unsigned int vertexOffset = 0;
+
+    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
+        const aiMesh* m = scene->mMeshes[mIndex];
+
+        // Wczytaj wierzchołki
+        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
+            aiVector3D pos = m->mVertices[i];
+            aiVector3D uv = m->HasTextureCoords(0) ? m->mTextureCoords[0][i] : aiVector3D(0, 0, 0);
+            aiVector3D norm = m->mNormals[i];
+
+            mesh.vertices.push_back(pos.x);
+            mesh.vertices.push_back(pos.y);
+            mesh.vertices.push_back(pos.z);
+
+            mesh.vertices.push_back(uv.x);
+            mesh.vertices.push_back(uv.y);
+
+            mesh.vertices.push_back(norm.x);
+            mesh.vertices.push_back(norm.y);
+            mesh.vertices.push_back(norm.z);
+        }
+
+        // Wczytaj indeksy (z offsetem, bo łączymy siatki)
+        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
+            const aiFace& face = m->mFaces[f];
+            for (unsigned int j = 0; j < face.mNumIndices; ++j) {
+                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
+            }
+        }
+
+        vertexOffset += m->mNumVertices;
+
+        // Możesz tu też wczytać materiały dla każdego mesha, jeśli chcesz
+    }
+
+    // Normalizacja modelu — to możesz przenieść z Twojej oryginalnej funkcji
+    // ...
+
+    // Materiały możesz wyciągnąć podobnie, np. z scene->mMaterials i powiązać z meshami
+
+    return mesh;
+}
+
+Mesh loadMeshFromAssimp2(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
     Mesh mesh;
     Assimp::Importer importer;
 
