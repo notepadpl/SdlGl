@@ -65,7 +65,8 @@ uniform sampler2D tex;
 
 void main() {
     vec3 lightDir = normalize(vec3(0.5, 1.0, 0.75));
-    float diff = max(dot(vNormal, lightDir), 0.0);
+float diff = 1.0;
+    //float diff = max(dot(vNormal, lightDir), 0.0);
 
     vec4 texColor = texture2D(tex, vUV);
     vec3 color = texColor.rgb * diff;
