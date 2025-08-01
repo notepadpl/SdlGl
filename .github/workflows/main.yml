@@ -54,7 +54,7 @@ jobs:
           em++ sdlGl.cpp \
             -Iassimp/include \
             -Iassimp/code \
-            -Lassimp/bin \
+            -Lassimp/lib \
             -lassimp \
             -s WASM=1 \
             -s USE_SDL=2 \
