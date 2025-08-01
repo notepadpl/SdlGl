@@ -146,76 +146,7 @@ Mesh loadAllMeshesFromAssimp(const std::string& path, std::unordered_map<std::st
     return mesh;
 }
 
-Mesh loadMeshFromAssimp2(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
-    Mesh mesh;
-    Assimp::Importer importer;
 
-    const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
-
-    if (!scene || !scene->HasMeshes()) {
-        printf("Assimp error: %s\n", importer.GetErrorString());
-        return mesh;
-    }
-
-    const aiMesh* m = scene->mMeshes[0];
-
-    for (unsigned int i = 0; i < m->mNumVertices; ++i) {
-        aiVector3D pos = m->mVertices[i];
-        aiVector3D uv = m->HasTextureCoords(0) ? m->mTextureCoords[0][i] : aiVector3D(0, 0, 0);
-        aiVector3D norm = m->mNormals[i];
-
-        mesh.vertices.push_back(pos.x);
-        mesh.vertices.push_back(pos.y);
-        mesh.vertices.push_back(pos.z);
-
-        mesh.vertices.push_back(uv.x);
-        mesh.vertices.push_back(uv.y);
-
-        mesh.vertices.push_back(norm.x);
-        mesh.vertices.push_back(norm.y);
-        mesh.vertices.push_back(norm.z);
-    }
-
-    for (unsigned int i = 0; i < m->mNumFaces; ++i) {
-        aiFace& face = m->mFaces[i];
-        for (unsigned int j = 0; j < face.mNumIndices; ++j)
-            mesh.indices.push_back(face.mIndices[j]);
-    }
-
-    // Normalize model (center & scale)
-    float minX=1e10f, maxX=-1e10f, minY=1e10f, maxY=-1e10f, minZ=1e10f, maxZ=-1e10f;
-    for (size_t i = 0; i < mesh.vertices.size(); i += 8) {
-        float x = mesh.vertices[i + 0];
-        float y = mesh.vertices[i + 1];
-        float z = mesh.vertices[i + 2];
-        minX = std::min(minX, x); maxX = std::max(maxX, x);
-        minY = std::min(minY, y); maxY = std::max(maxY, y);
-        minZ = std::min(minZ, z); maxZ = std::max(maxZ, z);
-    }
-    float cx = (minX + maxX) / 2.f;
-    float cy = (minY + maxY) / 2.f;
-    float cz = (minZ + maxZ) / 2.f;
-    float scale = 1.f / std::max({maxX - minX, maxY - minY, maxZ - minZ});
-    for (size_t i = 0; i < mesh.vertices.size(); i += 8) {
-        mesh.vertices[i + 0] = (mesh.vertices[i + 0] - cx) * scale;
-        mesh.vertices[i + 1] = (mesh.vertices[i + 1] - cy) * scale;
-        mesh.vertices[i + 2] = (mesh.vertices[i + 2] - cz) * scale;
-    }
-
-    // Load material texture path (only first diffuse texture)
-    if (scene->HasMaterials()) {
-        aiMaterial* mat = scene->mMaterials[m->mMaterialIndex];
-        aiString texPath;
-        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
-            Material material;
-            material.texPath = std::string(texPath.C_Str());
-            materialsOut["default"] = material;
-        }
-    }
-
-    return mesh;
-}
 
 bool init() {
     SDL_Init(SDL_INIT_VIDEO);
