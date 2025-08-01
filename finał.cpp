@@ -49,7 +49,7 @@ void main() {
     mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
     mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
     vec3 p = Ry * Rx * aPos;
-    gl_Position = vec4(p * 0.5 + vec3(0.0, 0.0, -1.0), 1.0);
+    gl_Position = vec4(p * 1.5 + vec3(0.0, 0.0, -1.0), 1.0);
 
     vUV = aUV;
     vNormal = normalize(Ry * Rx * aNormal);
@@ -127,7 +127,7 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
         for (unsigned int j = 0; j < face.mNumIndices; ++j)
             mesh.indices.push_back(face.mIndices[j]);
     }
-/*
+
     // Normalize model (center & scale)
     float minX=1e10f, maxX=-1e10f, minY=1e10f, maxY=-1e10f, minZ=1e10f, maxZ=-1e10f;
     for (size_t i = 0; i < mesh.vertices.size(); i += 8) {
@@ -158,7 +158,7 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
             materialsOut["default"] = material;
         }
     }
-*/
+
     return mesh;
 }
 
@@ -172,7 +172,7 @@ bool init() {
     glViewport(0, 0, 800, 600);
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.9f, 0.1f, 0.1f, 1.0f);
 
     mesh = loadMeshFromAssimp("asserts/Harpy.fbx", materials, "asserts/");
     printf("Loaded mesh: verts=%zu, indices=%zu\n", mesh.vertices.size() / 8, mesh.indices.size());
