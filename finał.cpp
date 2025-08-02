@@ -12,15 +12,24 @@
 #include <string>
 #include <algorithm>
 #include <stdio.h>
+struct Vertex {
+    float x, y, z;
+    float u, v;
+    float nx, ny, nz;
+};
 
 struct Material {
-    std::string texPath;
+    std::string texPathDiffuse;
+    std::string texPathNormal;
 };
 
 struct Mesh {
-    std::vector<float> vertices; // pos(3), uv(2), normal(3)
+    std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
+    std::vector<Material> materials;
+    std::vector<int> materialIndices; // indeks materiału przypisany do każdej twarzy
 };
+
 
 SDL_Window* window;
 SDL_GLContext glContext;
@@ -97,6 +106,99 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
     Mesh mesh;
     Assimp::Importer importer;
 
+    const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_GenSmoothNormals |
+        aiProcess_FlipUVs);
+
+    if (!scene || !scene->HasMeshes()) {
+        std::cerr << "Assimp error: " << importer.GetErrorString() << "\n";
+        return mesh;
+    }
+
+    const float scale = 0.02f;
+    unsigned int vertexOffset = 0;
+
+    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
+        const aiMesh* m = scene->mMeshes[mIndex];
+        int materialIndex = m->mMaterialIndex;
+
+        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
+            Vertex v;
+
+            aiVector3D pos = m->mVertices[i];
+            v.x = pos.x * scale;
+            v.y = pos.y * scale;
+            v.z = pos.z * scale;
+
+            if (m->HasTextureCoords(0)) {
+                v.u = m->mTextureCoords[0][i].x;
+                v.v = m->mTextureCoords[0][i].y;
+            } else {
+                v.u = v.v = 0.0f;
+                std::cerr << "Warning: Missing UVs in mesh " << mIndex << "\n";
+            }
+
+            if (m->HasNormals()) {
+                aiVector3D norm = m->mNormals[i];
+                v.nx = norm.x;
+                v.ny = norm.y;
+                v.nz = norm.z;
+            } else {
+                v.nx = 0;
+                v.ny = 1;
+                v.nz = 0;
+                std::cerr << "Warning: Missing normals in mesh " << mIndex << "\n";
+            }
+
+            mesh.vertices.push_back(v);
+        }
+
+        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
+            const aiFace& face = m->mFaces[f];
+            if (face.mNumIndices != 3) {
+                std::cerr << "Warning: Non-triangle face detected.\n";
+                continue;
+            }
+
+            for (unsigned int j = 0; j < 3; ++j) {
+                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
+            }
+
+            mesh.materialIndices.push_back(materialIndex);
+        }
+
+        vertexOffset += m->mNumVertices;
+    }
+
+    // Wczytaj materiały
+    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+        aiMaterial* mat = scene->mMaterials[i];
+        Material mtl;
+
+        aiString texPath;
+
+        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            mtl.texPathDiffuse = texPath.C_Str();
+            materialsOut[mtl.texPathDiffuse] = mtl;
+        }
+
+        if (mat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == AI_SUCCESS) {
+            mtl.texPathNormal = texPath.C_Str();
+            materialsOut[mtl.texPathNormal] = mtl;
+        }
+
+        mesh.materials.push_back(mtl);
+    }
+
+    return mesh;
+}
+/*
+Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
+    Mesh mesh;
+    Assimp::Importer importer;
+
     /*Używamy PreTransformVertices i ConvertToLeftHanded
     const aiScene* scene = importer.ReadFile(path,
         aiProcess_Triangulate |
@@ -162,7 +264,7 @@ const aiScene* scene = importer.ReadFile(path,
 
     return mesh;
 }
-/*
+
 Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
     Mesh mesh;
     Assimp::Importer importer;
