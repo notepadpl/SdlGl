@@ -108,7 +108,7 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
         return mesh;
     }
 
-    const float scale = 0.1f;  // Skalowanie modelu (opcjonalne)
+    const float scale = 0.02f;  // Skalowanie modelu (opcjonalne)
 
     unsigned int vertexOffset = 0;
 
