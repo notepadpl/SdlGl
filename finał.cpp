@@ -101,7 +101,6 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
         aiProcess_Triangulate |
         aiProcess_JoinIdenticalVertices |
         aiProcess_PreTransformVertices |
-        aiProcess_ConvertToLeftHanded |
         aiProcess_GenSmoothNormals |
         aiProcess_FlipUVs);
 
