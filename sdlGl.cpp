@@ -175,7 +175,12 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(program);
     glUniform1f(glGetUniformLocation(program, "uAngle"), angle);
+GLint rotXLoc = glGetUniformLocation(program, "rotX");
+    GLint rotYLoc = glGetUniformLocation(program, "rotY");
+    glUniform1f(rotXLoc, rotX);
+    glUniform1f(rotYLoc, rotY);
 
+    // .
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     GLint pos = glGetAttribLocation(program, "aPos");
     glEnableVertexAttribArray(pos);
