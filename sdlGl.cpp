@@ -67,11 +67,10 @@ GLuint compileShader(GLenum type, const char* source) {
     }
     return shader;
 }
-
 Mesh loadMeshFromAssimp(const char* path) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals);
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
     Mesh m;
 
@@ -82,11 +81,28 @@ Mesh loadMeshFromAssimp(const char* path) {
 
     const aiMesh* meshData = scene->mMeshes[0];
 
+    // Zbieramy wszystkie atrybuty w jednym buforze, tak jest wydajniej
+    // 3x pozycja, 2x UV, 3x normalna = 8 floatow na wierzcholek
+    m.vertices.resize(meshData->mNumVertices * 8);
+
     for (unsigned int i = 0; i < meshData->mNumVertices; ++i) {
-        aiVector3D pos = meshData->mVertices[i];
-        m.vertices.push_back(pos.x);
-        m.vertices.push_back(pos.y);
-        m.vertices.push_back(pos.z);
+        // Pozycja (3 floats)
+        m.vertices[i * 8 + 0] = meshData->mVertices[i].x;
+        m.vertices[i * 8 + 1] = meshData->mVertices[i].y;
+        m.vertices[i * 8 + 2] = meshData->mVertices[i].z;
+
+        // Normalne (3 floats)
+        if(meshData->HasNormals()){
+            m.vertices[i * 8 + 3] = meshData->mNormals[i].x;
+            m.vertices[i * 8 + 4] = meshData->mNormals[i].y;
+            m.vertices[i * 8 + 5] = meshData->mNormals[i].z;
+        }
+
+        // UV (2 floats)
+        if(meshData->HasTextureCoords(0)){
+            m.vertices[i * 8 + 6] = meshData->mTextureCoords[0][i].x;
+            m.vertices[i * 8 + 7] = meshData->mTextureCoords[0][i].y;
+        }
     }
 
     for (unsigned int i = 0; i < meshData->mNumFaces; ++i) {
@@ -94,9 +110,7 @@ Mesh loadMeshFromAssimp(const char* path) {
         for (unsigned int j = 0; j < face.mNumIndices; ++j) {
             m.indices.push_back(face.mIndices[j]);
         }
-    } 
-
-
+    }
     return m;
 }
 
