@@ -94,6 +94,74 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
     Mesh mesh;
     Assimp::Importer importer;
 
+    // Używamy PreTransformVertices i ConvertToLeftHanded
+    const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_PreTransformVertices |
+        aiProcess_ConvertToLeftHanded |
+        aiProcess_GenSmoothNormals |
+        aiProcess_FlipUVs);
+
+    if (!scene || !scene->HasMeshes()) {
+        printf("Assimp error: %s\n", importer.GetErrorString());
+        return mesh;
+    }
+
+    const float scale = 0.5f;  // Skalowanie modelu (opcjonalne)
+
+    unsigned int vertexOffset = 0;
+
+    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
+        const aiMesh* m = scene->mMeshes[mIndex];
+
+        // Wczytaj wierzchołki
+        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
+            aiVector3D pos = m->mVertices[i];
+            aiVector3D uv = m->HasTextureCoords(0) ? m->mTextureCoords[0][i] : aiVector3D(0, 0, 0);
+            aiVector3D norm = m->HasNormals() ? m->mNormals[i] : aiVector3D(0, 1, 0);
+
+            // Skalujemy pozycję, reszta bez zmian
+            mesh.vertices.push_back(pos.x * scale);
+            mesh.vertices.push_back(pos.y * scale);
+            mesh.vertices.push_back(pos.z * scale);
+
+            mesh.vertices.push_back(uv.x);
+            mesh.vertices.push_back(uv.y);
+
+            mesh.vertices.push_back(norm.x);
+            mesh.vertices.push_back(norm.y);
+            mesh.vertices.push_back(norm.z);
+        }
+
+        // Wczytaj indeksy (uwzględniając przesunięcie)
+        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
+            const aiFace& face = m->mFaces[f];
+            for (unsigned int j = 0; j < face.mNumIndices; ++j) {
+                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
+            }
+        }
+
+        vertexOffset += m->mNumVertices;
+    }
+
+    // Wczytaj materiały (osobno, po meshach)
+    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+        aiMaterial* mat = scene->mMaterials[i];
+        aiString texPath;
+        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            std::string textureFile = texPath.C_Str();
+            materialsOut[textureFile].texPath = textureFile;
+        }
+    }
+
+    return mesh;
+}
+/*
+Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
+    Mesh mesh;
+    Assimp::Importer importer;
+
     const aiScene* scene = importer.ReadFile(path,
         aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
 
@@ -156,7 +224,7 @@ for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
     return mesh;
 }
 
-
+*/
 
 bool init() {
     SDL_Init(SDL_INIT_VIDEO);
