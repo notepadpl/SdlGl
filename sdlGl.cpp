@@ -47,19 +47,8 @@ void main(){
 
 const char* fs = R"(
 precision mediump float;
-
-varying vec2 vUV;
-varying vec3 vNormal;
-uniform sampler2D tex;
-
 void main() {
-    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.75));
-    float diff = max(dot(vNormal, lightDir), 0.0);
-
-    vec4 texColor = texture2D(tex, vUV);
-    vec3 color = texColor.rgb * diff;
-
-    gl_FragColor = vec4(color, texColor.a);
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Rysuj na czerwono
 }
 )";
 
