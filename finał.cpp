@@ -97,14 +97,17 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
     Mesh mesh;
     Assimp::Importer importer;
 
-    // Używamy PreTransformVertices i ConvertToLeftHanded
+    /*Używamy PreTransformVertices i ConvertToLeftHanded
     const aiScene* scene = importer.ReadFile(path,
         aiProcess_Triangulate |
         aiProcess_JoinIdenticalVertices |
         aiProcess_PreTransformVertices |
         aiProcess_GenSmoothNormals |
-        aiProcess_FlipUVs);
+        aiProcess_FlipUVs);*/
+const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals);
 
+    
     if (!scene || !scene->HasMeshes()) {
         printf("Assimp error: %s\n", importer.GetErrorString());
         return mesh;
