@@ -1,0 +1,235 @@
+#include <SDL.h>
+#include <GLES2/gl2.h>
+#include <emscripten.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
+#include <vector>
+#include <unordered_map>
+#include <string>
+#include <iostream>
+#include <stdio.h>
+
+struct Vertex {
+    float x, y, z;
+    float u, v;
+    float nx, ny, nz;
+};
+
+struct Material {
+    std::string texPathDiffuse;
+    std::string texPathNormal;
+};
+
+struct Mesh {
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<Material> materials;
+    std::vector<int> materialIndices;
+};
+
+SDL_Window* window;
+SDL_GLContext glContext;
+Mesh mesh;
+GLuint program, vbo, ibo, tex = 0;
+std::unordered_map<std::string, Material> materials;
+
+float rotX = 0, rotY = 0;
+bool mouseDown = false;
+int lastX, lastY;
+
+const char* vs = R"(
+attribute vec3 aPos;
+attribute vec2 aUV;
+attribute vec3 aNormal;
+
+varying vec2 vUV;
+varying vec3 vNormal;
+
+uniform float rotX;
+uniform float rotY;
+
+void main() {
+    float cx = cos(rotX), sx = sin(rotX);
+    float cy = cos(rotY), sy = sin(rotY);
+    mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
+    mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
+    vec3 p = Ry * Rx * aPos;
+    gl_Position = vec4(p + vec3(0.0, 0.0, -0.5), 1.0);
+
+    vUV = aUV;
+    vNormal = normalize(Ry * Rx * aNormal);
+}
+)";
+
+const char* fs = R"(
+precision mediump float;
+
+varying vec2 vUV;
+varying vec3 vNormal;
+uniform sampler2D tex;
+
+void main() {
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.75));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+
+    vec4 texColor = texture2D(tex, vUV);
+    vec3 color = texColor.rgb * diff;
+
+    gl_FragColor = vec4(color, texColor.a);
+}
+)";
+
+GLuint compileShader(GLenum type, const char* source) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
+
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        printf("Shader compilation failed: %s\n", infoLog);
+        return 0;
+    }
+    return shader;
+}
+
+Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
+    Mesh mesh;
+    Assimp::Importer importer;
+
+    const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_GenSmoothNormals |
+        aiProcess_FlipUVs);
+
+    if (!scene || !scene->HasMeshes()) {
+        std::cerr << "Assimp error: " << importer.GetErrorString() << "\n";
+        return mesh;
+    }
+
+    const float scale = 0.02f;
+    unsigned int vertexOffset = 0;
+
+    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
+        const aiMesh* m = scene->mMeshes[mIndex];
+        int materialIndex = m->mMaterialIndex;
+
+        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
+            Vertex v;
+
+            aiVector3D pos = m->mVertices[i];
+            v.x = pos.x * scale;
+            v.y = pos.y * scale;
+            v.z = pos.z * scale;
+
+            if (m->HasTextureCoords(0)) {
+                v.u = m->mTextureCoords[0][i].x;
+                v.v = m->mTextureCoords[0][i].y;
+            } else {
+                v.u = v.v = 0.0f;
+            }
+
+            if (m->HasNormals()) {
+                aiVector3D norm = m->mNormals[i];
+                v.nx = norm.x;
+                v.ny = norm.y;
+                v.nz = norm.z;
+            } else {
+                v.nx = 0;
+                v.ny = 1;
+                v.nz = 0;
+            }
+
+            mesh.vertices.push_back(v);
+        }
+
+        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
+            const aiFace& face = m->mFaces[f];
+            if (face.mNumIndices != 3) continue;
+
+            for (unsigned int j = 0; j < 3; ++j) {
+                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
+            }
+
+            mesh.materialIndices.push_back(materialIndex);
+        }
+
+        vertexOffset += m->mNumVertices;
+    }
+
+    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+        aiMaterial* mat = scene->mMaterials[i];
+        Material mtl;
+        aiString texPath;
+
+        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            mtl.texPathDiffuse = texPath.C_Str();
+            materialsOut[mtl.texPathDiffuse] = mtl;
+        }
+
+        if (mat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == AI_SUCCESS) {
+            mtl.texPathNormal = texPath.C_Str();
+            materialsOut[mtl.texPathNormal] = mtl;
+        }
+
+        mesh.materials.push_back(mtl);
+    }
+
+    return mesh;
+}
+
+bool init() {
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+
+    window = SDL_CreateWindow("Assimp + SDL Viewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_OPENGL);
+    glContext = SDL_GL_CreateContext(window);
+    glViewport(0, 0, 800, 600);
+
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.9f, 0.1f, 0.1f, 1.0f);
+
+    mesh = loadMeshFromAssimp("asserts/Harpy.fbx", materials, "asserts/");
+    printf("Loaded mesh: verts=%zu, indices=%zu\n", mesh.vertices.size(), mesh.indices.size());
+
+    GLuint vsId = compileShader(GL_VERTEX_SHADER, vs);
+    GLuint fsId = compileShader(GL_FRAGMENT_SHADER, fs);
+    program = glCreateProgram();
+    glAttachShader(program, vsId);
+    glAttachShader(program, fsId);
+
+    glBindAttribLocation(program, 0, "aPos");
+    glBindAttribLocation(program, 1, "aUV");
+    glBindAttribLocation(program, 2, "aNormal");
+
+    glLinkProgram(program);
+
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size() * sizeof(Vertex), mesh.vertices.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(unsigned int), mesh.indices.data(), GL_STATIC_DRAW);
+
+    if (!materials.empty()) {
+        Material& mat = materials.begin()->second;
+        std::string fullTexPath = "asserts/" + mat.texPathDiffuse;
+        int w, h, comp;
+        unsigned char* data = stbi_load(fullTexPath.c_str(), &w, &h, &comp, 4);
+        if (!data) {
+            printf("Failed to load texture: %s\n", fullTexPath.c_str());
+            return false;
+        }
+        glGenTextures(1, &tex);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        gl
