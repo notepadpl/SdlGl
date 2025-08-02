@@ -28,7 +28,7 @@ const char* vs = R"(
         mat3 rot = mat3(c, -s, 0, s, c, 0, 0, 0, 1);
 gl_Position = vec4(rot * (aPos * 1.0), 1.0); // skaluj ręcznie
 
-       // gl_Position = vec4(rot * (aPos - vec3(0.5)), 1.0);
+        gl_Position = vec4(rot * (aPos - vec3(0.5)), 1.0);
     }
 )";
 const char* fs = R"(
@@ -63,7 +63,7 @@ Mesh loadMeshFromAssimp(const char* path) {
         return m;
     }
 
-    const aiMesh* meshData = scene->mMeshes[0];
+    const aiMesh* meshData = scene->mMeshes[1];
 
     for (unsigned int i = 0; i < meshData->mNumVertices; ++i) {
         aiVector3D pos = meshData->mVertices[i];
