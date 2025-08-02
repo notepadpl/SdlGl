@@ -135,14 +135,39 @@ bool init() {
     glAttachShader(program, fsId);
     glLinkProgram(program);
 
-    glGenBuffers(1, &vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size()*sizeof(float), mesh.vertices.data(), GL_STATIC_DRAW);
+    // Zmien w init()
+// ...
+glGenBuffers(1, &vbo);
+glBindBuffer(GL_ARRAY_BUFFER, vbo);
+// Dane teraz mają 8 floatów na wierzchołek
+glBufferData(GL_ARRAY_BUFFER, mesh.vertices.size()*sizeof(float), mesh.vertices.data(), GL_STATIC_DRAW);
 
-    glGenBuffers(1, &ibo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size()*sizeof(unsigned int), mesh.indices.data(), GL_STATIC_DRAW);
+glGenBuffers(1, &ibo);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size()*sizeof(unsigned int), mesh.indices.data(), GL_STATIC_DRAW);
 
+glUseProgram(program); // Uzywaj programu, aby pobrac lokalizacje atrybutow
+
+// Konfiguracja atrybutow (ZMIENIONO)
+GLint posLoc = glGetAttribLocation(program, "aPos");
+GLint normalLoc = glGetAttribLocation(program, "aNormal");
+GLint uvLoc = glGetAttribLocation(program, "aUV");
+
+// Sprawdz czy atrybuty istnieja (warto dodac diagnostyke)
+printf("aPos location: %d, aNormal location: %d, aUV location: %d\n", posLoc, normalLoc, uvLoc);
+
+// Pozycja (offset 0, 3 floata)
+glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)0);
+glEnableVertexAttribArray(posLoc);
+
+// Normalne (offset 3, 3 floaty)
+glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 3));
+glEnableVertexAttribArray(normalLoc);
+
+// UV (offset 6, 2 floaty)
+glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
+glEnableVertexAttribArray(uvLoc);
+// ...
     return true;
 }
 
