@@ -42,45 +42,19 @@ bool mouseDown = false;
 int lastX, lastY;
 
 const char* vs = R"(
-attribute vec3 aPos;
-attribute vec2 aUV;
-attribute vec3 aNormal;
-
-varying vec2 vUV;
-varying vec3 vNormal;
-
-uniform float rotX;
-uniform float rotY;
-
-void main() {
-    float cx = cos(rotX), sx = sin(rotX);
-    float cy = cos(rotY), sy = sin(rotY);
-    mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
-    mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
-    vec3 p = Ry * Rx * aPos;
-    gl_Position = vec4(p + vec3(0.0, 0.0, -0.5), 1.0);
-
-    vUV = aUV;
-    vNormal = normalize(Ry * Rx * aNormal);
-}
+    attribute vec3 aPos;
+    uniform float uAngle;
+    void main() {
+        float c = cos(uAngle), s = sin(uAngle);
+        mat3 rot = mat3(c, -s, 0, s, c, 0, 0, 0, 1);
+        vec3 p = rot * (aPos * 1.5);  // skalowanie modelu
+        gl_Position = vec4(p + vec3(0.0, 0.0, -2.0), 1.0);  // przesunięcie kamery
+    }
 )";
 
 const char* fs = R"(
-precision mediump float;
-
-varying vec2 vUV;
-varying vec3 vNormal;
-uniform sampler2D tex;
-
-void main() {
-    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.75));
-    float diff = max(dot(vNormal, lightDir), 0.0);
-
-    vec4 texColor = texture2D(tex, vUV);
-    vec3 color = texColor.rgb * diff;
-
-    gl_FragColor = vec4(color, texColor.a);
-}
+    precision mediump float;
+    void main() { gl_FragColor = vec4(1.0); }
 )";
 
 GLuint compileShader(GLenum type, const char* source) {
