@@ -49,7 +49,7 @@ void main() {
     mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
     mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
     vec3 p = Ry * Rx * aPos;
-gl_Position = vec4(p + vec3(0.0, 0.0, -10.0), 1.0); // dalej odsunięte, jeśli nadal nie mieści się
+gl_Position = vec4(p + vec3(0.0, 0.0, -25.0), 1.0); // dalej odsunięte, jeśli nadal nie mieści się
 
  //   gl_Position = vec4(p * 0.5 + vec3(0.0, 0.0, -3.0), 1.0);
 
