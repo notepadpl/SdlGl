@@ -225,7 +225,7 @@ bool init() {
     // Load texture from material
     if (!materials.empty()) {
         Material& mat = materials.begin()->second;
-        std::string fullTexPath = "asserts/" + mat.texPath;
+        std::string fullTexPath = "asserts/" + mat.texPathNormal;
         int w, h, comp;
         unsigned char* data = stbi_load(fullTexPath.c_str(), &w, &h, &comp, 4);
         if (!data) {
