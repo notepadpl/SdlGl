@@ -1,3 +1,304 @@
+Przejdź do treści
+
+ChatGPT
+
+Zaloguj się
+Powiedziałeś(-aś):
+Cala ta funkcja jest zła
+Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
+    Mesh mesh;
+    Assimp::Importer importer;
+
+    /*Używamy PreTransformVertices i ConvertToLeftHanded
+    const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_PreTransformVertices |
+        aiProcess_GenSmoothNormals |
+        aiProcess_FlipUVs);*/
+const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals);
+
+    
+    if (!scene || !scene->HasMeshes()) {
+        printf("Assimp error: %s\n", importer.GetErrorString());
+        return mesh;
+    }
+
+    const float scale = 0.02f;  // Skalowanie modelu (opcjonalne)
+
+    unsigned int vertexOffset = 0;
+
+    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
+        const aiMesh* m = scene->mMeshes[mIndex];
+
+        // Wczytaj wierzchołki
+        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
+            aiVector3D pos = m->mVertices[i];
+            aiVector3D uv = m->HasTextureCoords(0) ? m->mTextureCoords[0][i] : aiVector3D(0, 0, 0);
+            aiVector3D norm = m->HasNormals() ? m->mNormals[i] : aiVector3D(0, 1, 0);
+
+            // Skalujemy pozycję, reszta bez zmian
+            mesh.vertices.push_back(pos.x * scale);
+            mesh.vertices.push_back(pos.y * scale);
+            mesh.vertices.push_back(pos.z * scale);
+
+            mesh.vertices.push_back(uv.x);
+            mesh.vertices.push_back(uv.y);
+
+            mesh.vertices.push_back(norm.x);
+            mesh.vertices.push_back(norm.y);
+            mesh.vertices.push_back(norm.z);
+        }
+
+        // Wczytaj indeksy (uwzględniając przesunięcie)
+        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
+            const aiFace& face = m->mFaces[f];
+            for (unsigned int j = 0; j < face.mNumIndices; ++j) {
+                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
+            }
+        }
+
+        vertexOffset += m->mNumVertices;
+    }
+
+    // Wczytaj materiały (osobno, po meshach)
+    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+        aiMaterial* mat = scene->mMaterials[i];
+        aiString texPath;
+        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            std::string textureFile = texPath.C_Str();
+            materialsOut[textureFile].texPath = textureFile;
+        }
+    }
+
+    return mesh;
+}
+ChatGPT powiedział:
+Twoja funkcja loadMeshFromAssimp działa w podstawowym zakresie, ale zawiera kilka problemów, potencjalnych błędów oraz braki w zakresie jakości kodu i obsługi wyjątków. Poniżej wypisuję, co dokładnie jest „złe” lub może być problematyczne:
+
+🔴 1. Błędne lub niepełne przetwarzanie materiałów
+materialsOut[textureFile].texPath = textureFile;
+To nadpisuje materiał bez powiązania z konkretnym aiMesh. Nie wiesz, który mesh używa którego materiału. A przecież każdy aiMesh ma mMaterialIndex.
+
+🛠 Poprawka:
+Zamiast przetwarzać materiały osobno, przetwarzaj je per mesh i przypisuj materiał danemu meshowi lub zwróć z mapowaniem.
+
+🔴 2. Brak obsługi transformacji sceny
+Zostawiłeś zakomentowaną opcję aiProcess_PreTransformVertices, ale bez niej, aiMesh nie zawiera transformacji węzłów (aiNode). To oznacza, że pozycje są lokalne względem węzła, a nie całej sceny.
+
+🛠 Poprawka:
+Albo włącz aiProcess_PreTransformVertices, albo przetwórz rekursywnie aiNode i stosuj node->mTransformation ręcznie.
+
+🟠 3. Składanie UV, normalnych i pozycji do jednego wektora mesh.vertices
+To koduje dane jako [x, y, z, u, v, nx, ny, nz], co działa, ale jest:
+
+trudne do debugowania,
+
+trudne do użycia z np. glVertexAttribPointer (potrzeba znać offsety i stride),
+
+nieczytelne.
+
+🛠 Lepsza praktyka:
+Zdefiniuj strukturę:
+
+struct Vertex {
+    glm::vec3 pos;
+    glm::vec2 uv;
+    glm::vec3 normal;
+};
+I przechowuj std::vector<Vertex> zamiast gołego floatowego mesh.vertices.
+
+🟠 4. Brak obsługi innych kanałów tekstur
+Wczytujesz tylko aiTextureType_DIFFUSE, a modele mogą mieć także NORMALS, SPECULAR, EMISSIVE, itd.
+
+🛠 Poprawka:
+Dodaj obsługę pozostałych typów tekstur, np.:
+
+for (int type = aiTextureType_NONE; type <= aiTextureType_UNKNOWN; ++type)
+🟡 5. Brak sprawdzania poprawności UV i normalnych
+Jeśli mesh nie ma UV lub normalnych, wrzucasz zero bez ostrzeżenia, co może skutkować wizualnymi błędami, a trudne jest to do wykrycia.
+
+🛠 Dodaj ostrzeżenia:
+
+if (!m->HasTextureCoords(0)) {
+    std::cerr << "Warning: Mesh has no UVs\n";
+}
+🟡 6. Brak obsługi osadzonych tekstur (embedded textures)
+Assimp wspiera tekstury wbudowane w plik (np. .fbx). Ty ich nie uwzględniasz.
+
+🟢 Inne sugestie:
+Warto dodać logowanie liczby wierzchołków, materiałów itp. do debugowania.
+
+Rozważ użycie aiProcess_OptimizeMeshes i aiProcess_ImproveCacheLocality.
+
+Nie masz żadnej obsługi animacji (jeśli zamierzasz), ale może to zamierzone.
+
+✅ Podsumowanie – Co warto poprawić?
+Problem	Ważność	Rozwiązanie
+Brak transformacji nodów	🔴	Użyj PreTransformVertices lub rekursja po aiNode
+Brak przypisania materiałów do meshów	🔴	Użyj mMaterialIndex każdego mesha
+Wspólny float-array dla vertex data	🟠	Zmień na strukturę Vertex
+Brak logów/ostrzeżeń przy braku danych	🟡	Dodaj std::cerr lub logger
+Ograniczona obsługa tekstur	🟠	Obsłuż więcej typów (normal map itd.)
+Jeśli chcesz, mogę przygotować dla Ciebie poprawioną wersję funkcji z lepszym designem i bez tych błędów. Czy chcesz?
+
+Powiedziałeś(-aś):
+Tak
+ChatGPT powiedział:
+Świetnie! Oto poprawiona i lepiej zaprojektowana wersja funkcji loadMeshFromAssimp, z następującymi usprawnieniami:
+
+✅ Zmiany względem Twojej wersji:
+Obsługa transformacji węzłów (aiNode) bez aiProcess_PreTransformVertices
+
+Struktura Vertex zamiast surowych floatów
+
+Obsługa materiałów powiązanych z konkretnymi meshami (przez mMaterialIndex)
+
+Lepsze skalowanie (opcjonalne)
+
+Logi ostrzegawcze przy braku danych
+
+Obsługa wielu typów tekstur (diffuse + normal)
+
+🧠 Założenia pomocnicze:
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <string>
+
+struct Vertex {
+    float x, y, z;
+    float u, v;
+    float nx, ny, nz;
+};
+
+struct Material {
+    std::string texPathDiffuse;
+    std::string texPathNormal;
+};
+
+struct Mesh {
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    std::vector<Material> materials;
+    std::vector<int> materialIndices; // indeks materiału przypisany do każdej twarzy
+};
+✅ Poprawiona funkcja
+Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
+    Mesh mesh;
+    Assimp::Importer importer;
+
+    const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate |
+        aiProcess_JoinIdenticalVertices |
+        aiProcess_GenSmoothNormals |
+        aiProcess_FlipUVs);
+
+    if (!scene || !scene->HasMeshes()) {
+        std::cerr << "Assimp error: " << importer.GetErrorString() << "\n";
+        return mesh;
+    }
+
+    const float scale = 0.02f;
+    unsigned int vertexOffset = 0;
+
+    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
+        const aiMesh* m = scene->mMeshes[mIndex];
+        int materialIndex = m->mMaterialIndex;
+
+        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
+            Vertex v;
+
+            aiVector3D pos = m->mVertices[i];
+            v.x = pos.x * scale;
+            v.y = pos.y * scale;
+            v.z = pos.z * scale;
+
+            if (m->HasTextureCoords(0)) {
+                v.u = m->mTextureCoords[0][i].x;
+                v.v = m->mTextureCoords[0][i].y;
+            } else {
+                v.u = v.v = 0.0f;
+                std::cerr << "Warning: Missing UVs in mesh " << mIndex << "\n";
+            }
+
+            if (m->HasNormals()) {
+                aiVector3D norm = m->mNormals[i];
+                v.nx = norm.x;
+                v.ny = norm.y;
+                v.nz = norm.z;
+            } else {
+                v.nx = 0;
+                v.ny = 1;
+                v.nz = 0;
+                std::cerr << "Warning: Missing normals in mesh " << mIndex << "\n";
+            }
+
+            mesh.vertices.push_back(v);
+        }
+
+        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
+            const aiFace& face = m->mFaces[f];
+            if (face.mNumIndices != 3) {
+                std::cerr << "Warning: Non-triangle face detected.\n";
+                continue;
+            }
+
+            for (unsigned int j = 0; j < 3; ++j) {
+                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
+            }
+
+            mesh.materialIndices.push_back(materialIndex);
+        }
+
+        vertexOffset += m->mNumVertices;
+    }
+
+    // Wczytaj materiały
+    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
+        aiMaterial* mat = scene->mMaterials[i];
+        Material mtl;
+
+        aiString texPath;
+
+        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+            mtl.texPathDiffuse = texPath.C_Str();
+            materialsOut[mtl.texPathDiffuse] = mtl;
+        }
+
+        if (mat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == AI_SUCCESS) {
+            mtl.texPathNormal = texPath.C_Str();
+            materialsOut[mtl.texPathNormal] = mtl;
+        }
+
+        mesh.materials.push_back(mtl);
+    }
+
+    return mesh;
+}
+📌 Co dalej możesz dodać (opcjonalnie)
+Obsługę osadzonych tekstur (embedded textures scene->HasTextures())
+
+Rekursyjne przetwarzanie aiNode, jeśli nie chcesz używać aiProcess_PreTransformVertices
+
+Ładowanie innych kanałów tekstur: SPECULAR, EMISSIVE, HEIGHT, itd.
+
+Obsługę aiBone i animacji szkieletowej
+
+Chcesz, żebym przygotował wersję, która rekurencyjnie przetwarza scenę i węzły (czyli bez PreTransformVertices)?
+
+Chwiał ostatnia próba 
+
+
+
+
+Nie wybrano plikuNie wybrano pliku
+ChatGPT może popełniać błędy. Sprawdź ważne informacje. Zobacz Preferencje dotyczące plików cookie.
+
 bool Model::LoadModel(const std::string& filePath)
 {
     Assimp::Importer importer;
