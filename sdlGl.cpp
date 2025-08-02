@@ -10,7 +10,9 @@
 
 SDL_Window* window;
 SDL_GLContext glContext;
-
+float rotX=0, rotY=0;
+bool mouseDown=false;
+int lastX, lastY;
 struct Mesh {
     std::vector<float> vertices; // 3 floats per vertex
     std::vector<unsigned int> indices;
@@ -21,20 +23,46 @@ GLuint program, vbo, ibo;
 float angle = 0.0f;
 
 const char* vs = R"(
-    attribute vec3 aPos;
-    uniform float uAngle;
-    void main() {
-        float c = cos(uAngle), s = sin(uAngle);
-        mat3 rot = mat3(c, -s, 0, s, c, 0, 0, 0, 1);
-gl_Position = vec4(rot * (aPos * 1.0), 1.0); // skaluj ręcznie
+attribute vec3 aPos;
+attribute vec2 aUV;
+attribute vec3 aNormal;
 
-        gl_Position = vec4(rot * (aPos - vec3(0.5)), 1.0);
-    }
+varying vec2 vUV;
+varying vec3 vNormal;
+
+uniform float rotX, rotY;
+
+void main(){
+    float cx = cos(rotX), sx=sin(rotX);
+    float cy = cos(rotY), sy=sin(rotY);
+    mat3 Rx = mat3(1,0,0, 0,cx,-sx, 0,sx,cx);
+    mat3 Ry = mat3(cy,0,sy, 0,1,0, -sy,0,cy);
+    vec3 p = Ry * Rx * aPos;
+    gl_Position = vec4(p * 0.5 + vec3(0.0, 0.0, -1.0), 1.0);
+
+    vUV = aUV;
+    vNormal = normalize(Ry * Rx * aNormal);
+}
 )";
+
 const char* fs = R"(
-    precision mediump float;
-    void main() { gl_FragColor = vec4(1.0); }
+precision mediump float;
+
+varying vec2 vUV;
+varying vec3 vNormal;
+uniform sampler2D tex;
+
+void main() {
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.75));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+
+    vec4 texColor = texture2D(tex, vUV);
+    vec3 color = texColor.rgb * diff;
+
+    gl_FragColor = vec4(color, texColor.a);
+}
 )";
+
 
 GLuint compileShader(GLenum type, const char* source) {
     GLuint shader = glCreateShader(type);
@@ -157,10 +185,20 @@ void render() {
     SDL_GL_SwapWindow(window);
 }
 
-void loop() {
-    angle += 0.01f;
+void loop(){
     SDL_Event e;
-    while (SDL_PollEvent(&e)) if (e.type == SDL_QUIT) emscripten_cancel_main_loop();
+    while(SDL_PollEvent(&e)){
+        if (e.type == SDL_QUIT) emscripten_cancel_main_loop();
+        else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){
+            mouseDown = true; lastX = e.button.x; lastY = e.button.y;
+        } else if(e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT){
+            mouseDown = false;
+        } else if(e.type == SDL_MOUSEMOTION && mouseDown){
+            rotY += (e.motion.x - lastX) * 0.01f;
+            rotX += (e.motion.y - lastY) * 0.01f;
+            lastX = e.motion.x; lastY = e.motion.y;
+        }
+    }
     render();
 }
 
