@@ -120,7 +120,7 @@ bool init() {
     glViewport(0, 0, 640, 480);
     glClearColor(0.1f, 0.9f, 0.1f, 1.0f);
 
-    mesh = loadMeshFromAssimp("asserts/Harpy.fbx");
+    mesh = loadMeshFromAssimp("asserts/Earth 2K.fbx");
     printf("Vertices: %zu, Indices: %zu\n", mesh.vertices.size()/3, mesh.indices.size()/3);
 
     GLuint vsId = compileShader(GL_VERTEX_SHADER, vs);
