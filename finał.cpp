@@ -10,8 +10,9 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
-#include <algorithm>
+#include <iostream>
 #include <stdio.h>
+
 struct Vertex {
     float x, y, z;
     float u, v;
@@ -27,9 +28,8 @@ struct Mesh {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
     std::vector<Material> materials;
-    std::vector<int> materialIndices; // indeks materiału przypisany do każdej twarzy
+    std::vector<int> materialIndices;
 };
-
 
 SDL_Window* window;
 SDL_GLContext glContext;
@@ -58,10 +58,7 @@ void main() {
     mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
     mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
     vec3 p = Ry * Rx * aPos;
-//gl_Position = vec4(p + vec3(0.0, 0.0, -2.0), 1.0); // dalej odsunięte, jeśli nadal nie mieści się
-gl_Position = vec4(p + vec3(0.0, 0.0, -0.5), 1.0);
-
- //   gl_Position = vec4(p * 0.5 + vec3(0.0, 0.0, -3.0), 1.0);
+    gl_Position = vec4(p + vec3(0.0, 0.0, -0.5), 1.0);
 
     vUV = aUV;
     vNormal = normalize(Ry * Rx * aNormal);
@@ -77,7 +74,6 @@ uniform sampler2D tex;
 
 void main() {
     vec3 lightDir = normalize(vec3(0.5, 1.0, 0.75));
-//float diff = 1.0;
     float diff = max(dot(vNormal, lightDir), 0.0);
 
     vec4 texColor = texture2D(tex, vUV);
@@ -102,6 +98,7 @@ GLuint compileShader(GLenum type, const char* source) {
     }
     return shader;
 }
+
 Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
     Mesh mesh;
     Assimp::Importer importer;
@@ -137,7 +134,6 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
                 v.v = m->mTextureCoords[0][i].y;
             } else {
                 v.u = v.v = 0.0f;
-                std::cerr << "Warning: Missing UVs in mesh " << mIndex << "\n";
             }
 
             if (m->HasNormals()) {
@@ -149,7 +145,6 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
                 v.nx = 0;
                 v.ny = 1;
                 v.nz = 0;
-                std::cerr << "Warning: Missing normals in mesh " << mIndex << "\n";
             }
 
             mesh.vertices.push_back(v);
@@ -157,10 +152,7 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
 
         for (unsigned int f = 0; f < m->mNumFaces; ++f) {
             const aiFace& face = m->mFaces[f];
-            if (face.mNumIndices != 3) {
-                std::cerr << "Warning: Non-triangle face detected.\n";
-                continue;
-            }
+            if (face.mNumIndices != 3) continue;
 
             for (unsigned int j = 0; j < 3; ++j) {
                 mesh.indices.push_back(vertexOffset + face.mIndices[j]);
@@ -172,11 +164,9 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
         vertexOffset += m->mNumVertices;
     }
 
-    // Wczytaj materiały
     for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
         aiMaterial* mat = scene->mMaterials[i];
         Material mtl;
-
         aiString texPath;
 
         if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
@@ -194,144 +184,7 @@ Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string,
 
     return mesh;
 }
-/*
-Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
-    Mesh mesh;
-    Assimp::Importer importer;
 
-    /*Używamy PreTransformVertices i ConvertToLeftHanded
-    const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate |
-        aiProcess_JoinIdenticalVertices |
-        aiProcess_PreTransformVertices |
-        aiProcess_GenSmoothNormals |
-        aiProcess_FlipUVs);*/
-const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals);
-
-    
-    if (!scene || !scene->HasMeshes()) {
-        printf("Assimp error: %s\n", importer.GetErrorString());
-        return mesh;
-    }
-
-    const float scale = 0.02f;  // Skalowanie modelu (opcjonalne)
-
-    unsigned int vertexOffset = 0;
-
-    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
-        const aiMesh* m = scene->mMeshes[mIndex];
-
-        // Wczytaj wierzchołki
-        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
-            aiVector3D pos = m->mVertices[i];
-            aiVector3D uv = m->HasTextureCoords(0) ? m->mTextureCoords[0][i] : aiVector3D(0, 0, 0);
-            aiVector3D norm = m->HasNormals() ? m->mNormals[i] : aiVector3D(0, 1, 0);
-
-            // Skalujemy pozycję, reszta bez zmian
-            mesh.vertices.push_back(pos.x * scale);
-            mesh.vertices.push_back(pos.y * scale);
-            mesh.vertices.push_back(pos.z * scale);
-
-            mesh.vertices.push_back(uv.x);
-            mesh.vertices.push_back(uv.y);
-
-            mesh.vertices.push_back(norm.x);
-            mesh.vertices.push_back(norm.y);
-            mesh.vertices.push_back(norm.z);
-        }
-
-        // Wczytaj indeksy (uwzględniając przesunięcie)
-        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
-            const aiFace& face = m->mFaces[f];
-            for (unsigned int j = 0; j < face.mNumIndices; ++j) {
-                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
-            }
-        }
-
-        vertexOffset += m->mNumVertices;
-    }
-
-    // Wczytaj materiały (osobno, po meshach)
-    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-        aiMaterial* mat = scene->mMaterials[i];
-        aiString texPath;
-        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
-            std::string textureFile = texPath.C_Str();
-            materialsOut[textureFile].texPath = textureFile;
-        }
-    }
-
-    return mesh;
-}
-
-Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
-    Mesh mesh;
-    Assimp::Importer importer;
-
-    const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_FlipUVs);
-
-    if (!scene || !scene->HasMeshes()) {
-        printf("Assimp error: %s\n", importer.GetErrorString());
-        return mesh;
-    }
-
-    unsigned int vertexOffset = 0;
-
-    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
-        const aiMesh* m = scene->mMeshes[mIndex];
-
-        // Wczytaj wierzchołki
-        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
-            aiVector3D pos = m->mVertices[i];
-            aiVector3D uv = m->HasTextureCoords(0) ? m->mTextureCoords[0][i] : aiVector3D(0, 0, 0);
-            aiVector3D norm = m->mNormals[i];
-
-            mesh.vertices.push_back(pos.x);
-            mesh.vertices.push_back(pos.y);
-            mesh.vertices.push_back(pos.z);
-
-            mesh.vertices.push_back(uv.x);
-            mesh.vertices.push_back(uv.y);
-
-            mesh.vertices.push_back(norm.x);
-            mesh.vertices.push_back(norm.y);
-            mesh.vertices.push_back(norm.z);
-        }
-
-        // Wczytaj indeksy (z offsetem, bo łączymy siatki)
-        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
-            const aiFace& face = m->mFaces[f];
-            for (unsigned int j = 0; j < face.mNumIndices; ++j) {
-                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
-            }
-        }
-
-        vertexOffset += m->mNumVertices;
-
-        // Możesz tu też wczytać materiały dla każdego mesha, jeśli chcesz
-        // Wczytaj materiały
-for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-    aiMaterial* mat = scene->mMaterials[i];
-    aiString texPath;
-    if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
-        std::string textureFile = texPath.C_Str();
-        materials[textureFile].texPath = textureFile;
-    }
-}
-        
-    }
-
-    // Normalizacja modelu — to możesz przenieść z Twojej oryginalnej funkcji
-    // ...
-
-    // Materiały możesz wyciągnąć podobnie, np. z scene->mMaterials i powiązać z meshami
-
-    return mesh;
-}
-
-*/
 
 bool init() {
     SDL_Init(SDL_INIT_VIDEO);
@@ -345,7 +198,7 @@ bool init() {
     glEnable(GL_DEPTH_TEST);
     glClearColor(0.9f, 0.1f, 0.1f, 1.0f);
 
-    mesh = loadMeshFromAssimp("asserts/Harpy.fbx", materials, "asserts/");
+    mesh = loadMeshFromAssimp("asserts/Earth 2K.fbx", materials, "asserts/");
     printf("Loaded mesh: verts=%zu, indices=%zu\n", mesh.vertices.size() / 8, mesh.indices.size());
 
     GLuint vsId = compileShader(GL_VERTEX_SHADER, vs);
