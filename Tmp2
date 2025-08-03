@@ -4,37 +4,170 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 #include <vector>
-#include <unordered_map>
-#include <string>
-#include <iostream>
+#include <cmath>
 #include <stdio.h>
+#include <SDL_image.h>
+#include <fstream>
+#include <string>
 
-struct Vertex {
-    float x, y, z;
-    float u, v;
-    float nx, ny, nz;
-};
-
-struct Material {
-    std::string texPathDiffuse;
-    std::string texPathNormal;
-};
-
-struct Mesh {
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-    std::vector<Material> materials;
-    std::vector<int> materialIndices;
-};
-
+// Globalne zmienne, ale teraz uproszczone
 SDL_Window* window;
 SDL_GLContext glContext;
-Mesh mesh;
-GLuint program, vbo, ibo, tex = 0;
+float rotX = 0, rotY = 0;
+bool mouseDown = false;
+int lastX, lastY;
+GLuint program;
+
+// --- Struktury i klasy ---
+struct MeshData {
+    std::vector<float> vertices;
+    std::vector<unsigned int> indices;
+};
+
+class Model {
+public:
+    GLuint vbo, ibo;
+    std::vector<GLuint> textureIDs; // Model może mieć wiele tekstur
+    size_t indexCount;
+
+    void render(GLuint program, float rotX, float rotY) {
+        glUseProgram(program);
+
+        // ... (reszta kodu renderującego, bez zmian) ...
+        
+        // Wiązanie pierwszej tekstury (można to rozbudować)
+        if (!textureIDs.empty()) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, textureIDs[0]);
+            glUniform1i(glGetUniformLocation(program, "tex"), 0);
+        }
+
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        
+        GLint posLoc = glGetAttribLocation(program, "aPos");
+        GLint normalLoc = glGetAttribLocation(program, "aNormal");
+        GLint uvLoc = glGetAttribLocation(program, "aUV");
+        
+        glEnableVertexAttribArray(posLoc);
+        glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)0);
+        
+        glEnableVertexAttribArray(normalLoc);
+        glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 3));
+        
+        glEnableVertexAttribArray(uvLoc);
+        glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
+        
+        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
+    }
+    void cleanup() {
+        glDeleteBuffers(1, &vbo);
+        glDeleteBuffers(1, &ibo);
+        glDeleteTextures(textureIDs.size(), textureIDs.data());
+    }
+};
+
+Model harpyModel;
+
+// --- Nowa funkcja do wczytywania listy ścieżek z pliku ---
+std::vector<std::string> loadTextureList(const char* listPath) {
+    std::vector<std::string> paths;
+    std::ifstream file(listPath);
+    if (!file.is_open()) {
+        printf("Failed to open texture list file: %s\n", listPath);
+        return paths;
+    }
+    std::string line;
+    while (std::getline(file, line)) {
+        paths.push_back(line);
+    }
+    file.close();
+    printf("Loaded %zu texture paths from %s\n", paths.size(), listPath);
+    return paths;
+}
+
+// Nowa funkcja do ładowania wszystkich tekstur z listy
+std::vector<GLuint> loadAllTexturesFromList(const std::vector<std::string>& paths) {
+    std::vector<GLuint> textureIDs;
+    for (const auto& path : paths) {
+        // Pomijamy puste linie
+        if (path.empty()) continue;
+        
+        SDL_Surface* surface = IMG_Load(path.c_str());
+        if (!surface) {
+            printf("Nie udalo sie zaladowac obrazu: %s. SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+            continue;
+        }
+        printf("Tekstura zaladowana pomyslnie: %s\n", path.c_str());
+
+        GLuint texID;
+        glGenTextures(1, &texID);
+        glBindTexture(GL_TEXTURE_2D, texID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        
+        GLenum format = (surface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        SDL_FreeSurface(surface);
+        textureIDs.push_back(texID);
+    }
+    return textureIDs;
+}
+
+// ... (reszta kodu, w tym shadery, init, render i main, jest prawie taka sama, 
+// z wyjątkiem jednej zmiany w funkcji init, która ładuje tekstury) ...
+// Uproszczona funkcja loadModel
+Model loadModel(const char* meshPath, const std::vector<std::string>& texturePaths) {
+    Model newModel;
+    MeshData meshData = loadMeshFromAssimp(meshPath);
+    if(meshData.indices.empty()) {
+        printf("Error: Model data is empty.\n");
+        return newModel;
+    }
+    
+    newModel.textureIDs = loadAllTexturesFromList(texturePaths);
+
+    // ... (reszta kodu tworzącego VBO i IBO, bez zmian) ...
+    glGenBuffers(1, &newModel.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, newModel.vbo);
+    glBufferData(GL_ARRAY_BUFFER, meshData.vertices.size() * sizeof(float), meshData.vertices.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &newModel.ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, newModel.ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, meshData.indices.size() * sizeof(unsigned int), meshData.indices.data(), GL_STATIC_DRAW);
+    
+    newModel.indexCount = meshData.indices.size();
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    return newModel;
+}
+
+bool init() {
+    // ... (kod inicjalizacji SDL/OpenGL) ...
+
+    // Ładowanie listy tekstur i modelu
+    std::vector<std::string> texturePaths = loadTextureList("tekstury.txt");
+    harpyModel = loadModel("asserts/Harpy.fbx", texturePaths);
+    if(harpyModel.indexCount == 0) {
+        printf("Failed to load Harpy model.\n");
+        return false;
+    }
+    
+    return true;
+}
+
+void render() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    harpyModel.render(program, rotX, rotY);
+    SDL_GL_SwapWindow(window);
+}
+// ... (reszta pętli loop i main bez zmian) ...GLuint program, vbo, ibo, tex = 0;
 std::unordered_map<std::string, Material> materials;
 
 float rotX = 0, rotY = 0;
