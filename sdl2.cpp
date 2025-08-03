@@ -95,9 +95,7 @@ if (!scene || !scene->HasMeshes()) {
     }
     printf("Model loaded successfully.\n");
 
-    const aiMesh* meshData = scene->mMeshes[0];
-
-    m.vertices.resize(meshData->mNumVertices * 8);
+ m.vertices.resize(meshData->mNumVertices * 8);
     for (unsigned int i = 0; i < meshData->mNumVertices; ++i) {
         m.vertices[i * 8 + 0] = meshData->mVertices[i].x;
         m.vertices[i * 8 + 1] = meshData->mVertices[i].y;
