@@ -7,7 +7,8 @@
 #include <vector>
 #include <cmath>
 #include <stdio.h>
-
+#include <SDL_image.h> // Dodaj ten n
+GLuint texture;
 SDL_Window* window;
 SDL_GLContext glContext;
 float rotX = 0, rotY = 0;
