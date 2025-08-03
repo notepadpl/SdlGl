@@ -84,8 +84,13 @@ if (!scene || !scene->HasMeshes()) {
     }
     printf("Model loaded successfully.\n");
     const aiMesh* meshData = scene->mMeshes[0];
-
-    // TUTAJ DODANO KOMUNIKAT DIAGNOSTYCZNY
+if (meshData->mMaterialIndex >= 0) {
+    const aiMaterial* material = scene->mMaterials[meshData->mMaterialIndex];
+    aiString path;
+    if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
+        printf("Sciezka do tekstury: %s\n", path.C_Str());
+    }
+} // TUTAJ DODANO KOMUNIKAT DIAGNOSTYCZNY
     if (!meshData->HasTextureCoords(0)) {
         printf("WARNING: Mesh does not have texture coordinates!\n");
 }
