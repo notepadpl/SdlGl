@@ -8,7 +8,7 @@
 #include <cmath>
 #include <stdio.h>
 #include <SDL_image.h>
-
+#include <unistd.h>
 // Globalne zmienne, ale teraz uproszczone
 SDL_Window* window;
 SDL_GLContext glContext;
@@ -300,6 +300,7 @@ void loop(){
 }
 
 int main() {
+    system("ls asserts > texture.txt");
     if (!init()) {
         printf("Initialization failed.\n");
         return 1;
