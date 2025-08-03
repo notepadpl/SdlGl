@@ -53,7 +53,7 @@ jobs:
         run: |
           source ./emsdk/emsdk_env.sh
           mkdir -p dist
-          em++ sdlS.cpp \
+          em++ glS.cpp \
             -Iassimp/include \
             -Iassimp/code \
             -Lassimp/lib \
