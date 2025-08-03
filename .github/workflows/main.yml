@@ -1,4 +1,4 @@
-name: Build and Deploy SDL2 OpenGL Emscripten
+name: Build and Deply SDL2 OpenGL Emscripten
 
 on:
   push:
