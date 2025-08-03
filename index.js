@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpnnz5ng4y.js
+// include: /tmp/tmpdmegq7b0.js
 
   if (!Module['expectedDataFileDownloads']) {
     Module['expectedDataFileDownloads'] = 0;
@@ -216,25 +216,25 @@ Module['FS_createPath']("/", "asserts", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/asserts/Earth 2K.obj", "start": 0, "end": 151576}, {"filename": "/asserts/Harpy.fbx", "start": 151576, "end": 1566212}, {"filename": "/asserts/Ocean_Mask_2K.png", "start": 1566212, "end": 2234867}, {"filename": "/asserts/cube.obj", "start": 2234867, "end": 2235353}, {"filename": "/asserts/tmp", "start": 2235353, "end": 2235354}], "remote_package_size": 2235354});
+    loadPackage({"files": [{"filename": "/asserts/Harpy.fbx", "start": 0, "end": 1414636}, {"filename": "/asserts/Ocean_Mask_2K.png", "start": 1414636, "end": 2083291}, {"filename": "/asserts/cube.obj", "start": 2083291, "end": 2083777}, {"filename": "/asserts/tmp", "start": 2083777, "end": 2083778}], "remote_package_size": 2083778});
 
   })();
 
-// end include: /tmp/tmpnnz5ng4y.js
-// include: /tmp/tmp9fus2q5v.js
+// end include: /tmp/tmpdmegq7b0.js
+// include: /tmp/tmpaycflrzy.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmp9fus2q5v.js
-// include: /tmp/tmpfedr2p5_.js
+  // end include: /tmp/tmpaycflrzy.js
+// include: /tmp/tmp2x998gdj.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmpfedr2p5_.js
+  // end include: /tmp/tmp2x998gdj.js
 
 
 // Sometimes an existing Module object exists with properties
