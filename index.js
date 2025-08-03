@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpn8nnf9oq.js
+// include: /tmp/tmpnnz5ng4y.js
 
   if (!Module['expectedDataFileDownloads']) {
     Module['expectedDataFileDownloads'] = 0;
@@ -216,25 +216,25 @@ Module['FS_createPath']("/", "asserts", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/asserts/Earth 2K.obj", "start": 0, "end": 151576}, {"filename": "/asserts/Harpy.fbx", "start": 151576, "end": 1566212}, {"filename": "/asserts/Night_lights_2K.png", "start": 1566212, "end": 2673812}, {"filename": "/asserts/Ocean_Mask_2K.png", "start": 2673812, "end": 3342467}, {"filename": "/asserts/cube.obj", "start": 3342467, "end": 3342953}, {"filename": "/asserts/tmp", "start": 3342953, "end": 3342954}], "remote_package_size": 3342954});
+    loadPackage({"files": [{"filename": "/asserts/Earth 2K.obj", "start": 0, "end": 151576}, {"filename": "/asserts/Harpy.fbx", "start": 151576, "end": 1566212}, {"filename": "/asserts/Ocean_Mask_2K.png", "start": 1566212, "end": 2234867}, {"filename": "/asserts/cube.obj", "start": 2234867, "end": 2235353}, {"filename": "/asserts/tmp", "start": 2235353, "end": 2235354}], "remote_package_size": 2235354});
 
   })();
 
-// end include: /tmp/tmpn8nnf9oq.js
-// include: /tmp/tmpbirq3igx.js
+// end include: /tmp/tmpnnz5ng4y.js
+// include: /tmp/tmp9fus2q5v.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmpbirq3igx.js
-// include: /tmp/tmpr711e51q.js
+  // end include: /tmp/tmp9fus2q5v.js
+// include: /tmp/tmpfedr2p5_.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmpr711e51q.js
+  // end include: /tmp/tmpfedr2p5_.js
 
 
 // Sometimes an existing Module object exists with properties
