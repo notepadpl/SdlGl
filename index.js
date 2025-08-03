@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpo0jwixq8.js
+// include: /tmp/tmp6d58n302.js
 
   if (!Module['expectedDataFileDownloads']) {
     Module['expectedDataFileDownloads'] = 0;
@@ -216,25 +216,25 @@ Module['FS_createPath']("/", "asserts", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/asserts/Diffuse_2K.png", "start": 0, "end": 3290164}, {"filename": "/asserts/Earth 2K.blend", "start": 3290164, "end": 22161676}, {"filename": "/asserts/Earth 2K.fbx", "start": 22161676, "end": 22238440}, {"filename": "/asserts/Earth 2K.mtl", "start": 22238440, "end": 22239102}, {"filename": "/asserts/Earth 2K.obj", "start": 22239102, "end": 22390678}, {"filename": "/asserts/Harpy.fbx", "start": 22390678, "end": 23805314}, {"filename": "/asserts/Night_lights_2K.png", "start": 23805314, "end": 24912914}, {"filename": "/asserts/Ocean_Mask_2K.png", "start": 24912914, "end": 25581569}, {"filename": "/asserts/cube.obj", "start": 25581569, "end": 25582055}, {"filename": "/asserts/tmp", "start": 25582055, "end": 25582056}], "remote_package_size": 25582056});
+    loadPackage({"files": [{"filename": "/asserts/Earth 2K.blend", "start": 0, "end": 18871512}, {"filename": "/asserts/Earth 2K.fbx", "start": 18871512, "end": 18948276}, {"filename": "/asserts/Earth 2K.mtl", "start": 18948276, "end": 18948938}, {"filename": "/asserts/Earth 2K.obj", "start": 18948938, "end": 19100514}, {"filename": "/asserts/Harpy.fbx", "start": 19100514, "end": 20515150}, {"filename": "/asserts/Night_lights_2K.png", "start": 20515150, "end": 21622750}, {"filename": "/asserts/Ocean_Mask_2K.png", "start": 21622750, "end": 22291405}, {"filename": "/asserts/cube.obj", "start": 22291405, "end": 22291891}, {"filename": "/asserts/tmp", "start": 22291891, "end": 22291892}], "remote_package_size": 22291892});
 
   })();
 
-// end include: /tmp/tmpo0jwixq8.js
-// include: /tmp/tmp8o1hx80n.js
+// end include: /tmp/tmp6d58n302.js
+// include: /tmp/tmpmbnpwcjz.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmp8o1hx80n.js
-// include: /tmp/tmpw5p6t4l8.js
+  // end include: /tmp/tmpmbnpwcjz.js
+// include: /tmp/tmphybys7sk.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmpw5p6t4l8.js
+  // end include: /tmp/tmphybys7sk.js
 
 
 // Sometimes an existing Module object exists with properties
