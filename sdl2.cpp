@@ -163,7 +163,7 @@ bool init() {
     }
 
     // Zaladowanie tekstury
-    SDL_Surface* surface = IMG_Load("assets/Earth 2K.jpg"); // Zalozmy, ze masz taki plik
+    SDL_Surface* surface = IMG_Load("asserts/Clouds_2K.png"); // Zalozmy, ze masz taki plik
     if (!surface) {
         printf("Nie udalo sie zaladowac obrazu! SDL_image Error: %s\n", IMG_GetError());
         return false;
