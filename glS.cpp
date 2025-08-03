@@ -71,8 +71,64 @@ GLuint compileShader(GLenum type, const char* source) {
     }
     return shader;
 }
-
 Mesh loadMeshFromAssimp(const char* path) {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(path,
+        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+
+    Mesh m;
+
+    if (!scene || !scene->HasMeshes()) {
+        printf("Failed to load: %s\n", importer.GetErrorString());
+        return m;
+    }
+    printf("Model loaded successfully. Found %d meshes.\n", scene->mNumMeshes);
+
+    // Bierzemy pod uwagę wszystkie siatki
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+        const aiMesh* meshData = scene->mMeshes[i];
+
+        // Dodajemy wierzcholki z biezacej siatki do glownego bufora
+        unsigned int currentVerticesSize = m.vertices.size();
+        m.vertices.resize(currentVerticesSize + meshData->mNumVertices * 8);
+
+        for (unsigned int j = 0; j < meshData->mNumVertices; ++j) {
+            // Pozycja
+            m.vertices[currentVerticesSize + j * 8 + 0] = meshData->mVertices[j].x;
+            m.vertices[currentVerticesSize + j * 8 + 1] = meshData->mVertices[j].y;
+            m.vertices[currentVerticesSize + j * 8 + 2] = meshData->mVertices[j].z;
+            
+            // Normalne
+            if (meshData->HasNormals()){
+                m.vertices[currentVerticesSize + j * 8 + 3] = meshData->mNormals[j].x;
+                m.vertices[currentVerticesSize + j * 8 + 4] = meshData->mNormals[j].y;
+                m.vertices[currentVerticesSize + j * 8 + 5] = meshData->mNormals[j].z;
+            } else {
+                m.vertices[currentVerticesSize + j * 8 + 3] = 0.0f; m.vertices[currentVerticesSize + j * 8 + 4] = 0.0f; m.vertices[currentVerticesSize + j * 8 + 5] = 0.0f;
+            }
+
+            // UV
+            if (meshData->HasTextureCoords(0)){
+                m.vertices[currentVerticesSize + j * 8 + 6] = meshData->mTextureCoords[0][j].x;
+                m.vertices[currentVerticesSize + j * 8 + 7] = meshData->mTextureCoords[0][j].y;
+            } else {
+                m.vertices[currentVerticesSize + j * 8 + 6] = 0.0f; m.vertices[currentVerticesSize + j * 8 + 7] = 0.0f;
+            }
+        }
+
+        // Dodajemy indeksy, pamietajac o offsetach
+        unsigned int indexOffset = currentVerticesSize / 8;
+        for (unsigned int j = 0; j < meshData->mNumFaces; ++j) {
+            const aiFace& face = meshData->mFaces[j];
+            for (unsigned int k = 0; k < face.mNumIndices; ++k) {
+                m.indices.push_back(face.mIndices[k] + indexOffset);
+            }
+        }
+    }
+    printf("Total Vertices: %zu, Total Indices: %zu\n", m.vertices.size() / 8, m.indices.size());
+    return m;
+}
+Mesh loadMeshFromAssimp2(const char* path) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path,
         aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
@@ -176,7 +232,7 @@ bool init() {
     IMG_Quit();
 
     // BARDZO WAŻNE: upewnij się, że plik jest preładowany poprawną ścieżką
-    mesh = loadMeshFromAssimp("assets/Earth 2K.fbx");
+    mesh = loadMeshFromAssimp("asserts/Harpy.fbx");
     if(mesh.indices.empty()) {
         printf("Error: Model data is empty.\n");
         return false;
