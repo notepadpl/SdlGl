@@ -7,7 +7,7 @@
 #include <vector>
 #include <cmath>
 #include <stdio.h>
-#include <SDL_image.h> // Dodaj ten n
+#include <SDL_image.h> 
 GLuint texture;
 SDL_Window* window;
 SDL_GLContext glContext;
@@ -91,7 +91,8 @@ if (meshData->mMaterialIndex >= 0) {
     if (material->GetTexture(aiTextureType_DIFFUSE, 0, &path) == AI_SUCCESS) {
         printf("Sciezka do tekstury: %s\n", path.C_Str());
     }
-} // TUTAJ DODANO KOMUNIKAT DIAGNOSTYCZNY
+} 
+    // TUTAJ DODANO KOMUNIKAT DIAGNOSTYCZNY
     if (!meshData->HasTextureCoords(0)) {
         printf("WARNING: Mesh does not have texture coordinates!\n");
 }
@@ -154,7 +155,31 @@ bool init() {
     }
     glViewport(0, 0, 640, 480);
     glClearColor(0.1f, 0.9f, 0.1f, 1.0f);
+    // inicjalizacja SDL_image
+    int imgFlags = IMG_INIT_JPG | IMG_INIT_PNG;
+    if (!(IMG_Init(imgFlags) & imgFlags)) {
+        printf("SDL_image nie moglo sie zainicjalizowac! SDL_image Error: %s\n", IMG_GetError());
+        return false;
+    }
 
+    // Zaladowanie tekstury
+    SDL_Surface* surface = IMG_Load("assets/Earth 2K.jpg"); // Zalozmy, ze masz taki plik
+    if (!surface) {
+        printf("Nie udalo sie zaladowac obrazu! SDL_image Error: %s\n", IMG_GetError());
+        return false;
+    }
+    printf("Tekstura zaladowana pomyslnie.\n");
+
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    SDL_FreeSurface(surface);
     // BARDZO WAŻNE: upewnij się, że plik jest preładowany poprawną ścieżką
     mesh = loadMeshFromAssimp("asserts/Earth 2K.fbx");
     if(mesh.vertices.empty()) return false;
@@ -197,8 +222,30 @@ bool init() {
 
     return true;
 }
-
 void render() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glUseProgram(program);
+
+    // Bindowanie tekstury przed rysowaniem
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glUniform1i(glGetUniformLocation(program, "tex"), 0);
+
+    // Przekazanie wartosci rotacji do shadera
+    GLint rotXLoc = glGetUniformLocation(program, "rotX");
+    GLint rotYLoc = glGetUniformLocation(program, "rotY");
+    glUniform1f(rotXLoc, rotX);
+    glUniform1f(rotYLoc, rotY);
+
+    // Bindowanie buforow
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+    glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, (void*)0);
+    SDL_GL_SwapWindow(window);
+}
+void render2() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Dodano czyszczenie bufora glebi
     glEnable(GL_DEPTH_TEST); // Wlacz testowanie glebi dla prawidlowego rysowania 3D
 
