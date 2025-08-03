@@ -23,13 +23,13 @@ struct Mesh {
 Mesh mesh;
 GLuint program, vbo, ibo;
 
-// Vertex Shader
 const char* vs = R"(
 attribute vec3 aPos;
 attribute vec3 aNormal;
 attribute vec2 aUV;
 
 varying vec3 vNormal;
+varying vec2 vUV;
 
 uniform float rotX, rotY;
 
@@ -39,11 +39,12 @@ void main(){
     mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
     mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
     vec3 p = Ry * Rx * aPos;
-    // Zmniejszono skale na 0.1, zeby model na pewno byl widoczny
-    // i przyblizono, zeby byl lepiej widoczny w oknie przegladarki
-    gl_Position = vec4(p * 0.1, 1.0); 
+
+    // Proba ze skalowaniem na 0.05
+    gl_Position = vec4(p * 0.05, 1.0);
 
     vNormal = normalize(Ry * Rx * aNormal);
+    vUV = aUV;
 }
 )";
 
@@ -77,7 +78,17 @@ Mesh loadMeshFromAssimp(const char* path) {
         aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
 
     Mesh m;
+if (!scene || !scene->HasMeshes()) {
+        printf("Failed to load: %s\n", importer.GetErrorString());
+        return m;
+    }
+    printf("Model loaded successfully.\n");
+    const aiMesh* meshData = scene->mMeshes[0];
 
+    // TUTAJ DODANO KOMUNIKAT DIAGNOSTYCZNY
+    if (!meshData->HasTextureCoords(0)) {
+        printf("WARNING: Mesh does not have texture coordinates!\n");
+}
     if (!scene || !scene->HasMeshes()) {
         printf("Failed to load: %s\n", importer.GetErrorString());
         return m;
