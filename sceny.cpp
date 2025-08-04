@@ -119,7 +119,7 @@ Material loadMaterial(const aiScene* scene, const aiMesh* mesh) {
     mat.specular = loadTextureFromMaterial(material, aiTextureType_SPECULAR);
     mat.normal   = loadTextureFromMaterial(material, aiTextureType_NORMALS);
     mat.emissive = loadTextureFromMaterial(material, aiTextureType_EMISSIVE);
-mat.diffuse = loadTextureFromMaterial("asserts/Hair.png");
+//mat.diffuse = loadTextureFromMaterial("asserts/Hair.png");
     
     return mat;
 }
@@ -339,7 +339,7 @@ bool init() {
     glLinkProgram(program);
 
     // --- Ładowanie modelu za pomocą nowej funkcji ---
-    harpyModel = loadModel("asserts/Harpy.fbx", "asserts/Hair.png");
+  //  harpyModel = loadModel("asserts/Harpy.fbx", "asserts/Hair.png");
     if(harpyModel.indexCount == 0) {
         printf("Failed to load Harpy model.\n");
         return false;
