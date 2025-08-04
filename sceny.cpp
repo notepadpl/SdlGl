@@ -297,7 +297,8 @@ void main() {
     vec4 emissiveColor = texture2D(emissiveMap, vUV);
 
     vec4 finalColor = diffuseColor + 0.3 * specularColor + 0.1 * emissiveColor;
-    gl_FragColor = finalColor;
+gl_FragColor = vec4(1.0, 0.5, 0.0, 1.0); 
+   // gl_FragColor = finalColor;
 }
 )";
 
