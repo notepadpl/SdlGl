@@ -298,7 +298,8 @@ void main() {
     vec4 emissiveColor = texture2D(emissiveMap, vUV);
 
     vec4 finalColor = diffuseColor + 0.3 * specularColor + 0.1 * emissiveColor;
-gl_FragColor = vec4(1.0, 0.5, 0.0, 1.0); 
+//gl_FragColor = vec4(1.0, 0.5, 0.0, 1.0); 
+gl_FragColor = diffuseColor; 
    // gl_FragColor = finalColor;
 }
 )";
@@ -339,7 +340,7 @@ bool init() {
     glLinkProgram(program);
 
     // --- Ładowanie modelu za pomocą nowej funkcji ---
-  //  harpyModel = loadModel("asserts/Harpy.fbx", "asserts/Hair.png");
+   harpyModel = loadModel("asserts/Harpy.fbx", "asserts/Hair.png");
     if(harpyModel.indexCount == 0) {
         printf("Failed to load Harpy model.\n");
         return false;
