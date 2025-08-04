@@ -350,15 +350,15 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
-glBindTexture(GL_TEXTURE_2D, this->material.diffuse); // lub po prostu this->material...
+glBindTexture(GL_TEXTURE_2D, harpyModel.material.diffuse); // lub po prostu this->material...
 glUniform1i(glGetUniformLocation(program, "tex"), 0);
 
 glActiveTexture(GL_TEXTURE1);
-glBindTexture(GL_TEXTURE_2D, material.specular);
+glBindTexture(GL_TEXTURE_2D, harpyModel.material.specular);
 glUniform1i(glGetUniformLocation(program, "specularMap"), 1);
 
 glActiveTexture(GL_TEXTURE2);
-glBindTexture(GL_TEXTURE_2D, material.normal);
+glBindTexture(GL_TEXTURE_2D, harpyModel.material.normal);
 glUniform1i(glGetUniformLocation(program, "normalMap"), 2);
 
 glActiveTexture(GL_TEXTURE3);
