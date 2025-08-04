@@ -24,7 +24,7 @@ struct Material {
 };
 
 struct MeshData {
-    std::vector<float> vertices; // Pozycja(3), Normal(3), UV(2)
+    std::vector<float> vertices; // Pozycja(3), UV(2)
     std::vector<unsigned int> indices;
 };
 
@@ -51,15 +51,12 @@ public:
         GLint uvLoc = glGetAttribLocation(program, "aUV");
 
         glEnableVertexAttribArray(posLoc);
-        glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)0);
+        glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)0);
 
         glEnableVertexAttribArray(uvLoc);
-        glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
+        glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (void*)(sizeof(float) * 3));
 
         glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
-
-        glDisableVertexAttribArray(posLoc);
-        glDisableVertexAttribArray(uvLoc);
     }
 
     void cleanup() {
@@ -71,7 +68,7 @@ public:
 
 Model harpyModel;
 
-// --- Shadery ---
+// --- Uproszczone shadery, bez oświetlenia ---
 const char* vs = R"(
 attribute vec3 aPos;
 attribute vec2 aUV;
@@ -96,17 +93,13 @@ precision mediump float;
 
 uniform sampler2D tex;
 varying vec2 vUV;
-varying vec3 vNormal;
 
 void main() {
-    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
-    float diff = max(dot(vNormal, lightDir), 0.0);
-    vec3 color = texture2D(tex, vUV).rgb * diff;
-    gl_FragColor = vec4(color, 1.0);
+    gl_FragColor = texture2D(tex, vUV);
 }
 )";
 
-// --- Shader utils ---
+// --- Shader utils (bez zmian) ---
 GLuint compileShader(GLenum type, const char* source) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
@@ -121,7 +114,7 @@ GLuint compileShader(GLenum type, const char* source) {
     return shader;
 }
 
-// --- Tekstury ---
+// --- Tekstury (bez zmian, ładowanie tylko dyfuzyjnej) ---
 GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::string& directory) {
     if (mat->GetTextureCount(type) > 0) {
         aiString path;
@@ -132,9 +125,8 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
         if (!surface) {
             printf("Failed to load texture: %s\n", fullPath.c_str());
             return 0;
-        }
-        else{
-            printf("load texture: %s\n", fullPath.c_str());
+        } else {
+            printf("Loaded texture: %s\n", fullPath.c_str());
         }
 
         GLuint texID;
@@ -156,17 +148,16 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
 Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::string& directory) {
     Material mat;
     if (!scene->HasMaterials()) return mat;
-
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
     mat.diffuse = loadTextureFromMaterial(material, aiTextureType_DIFFUSE, directory);
     return mat;
 }
 
-// --- Wczytywanie modelu ---
+// --- Wczytywanie modelu (uproszczone) ---
 Model loadModel(const char* meshPath, const std::string& textureDirectory) {
     Model model;
     Assimp::Importer importer;
-    const aiScene* scene = importer.ReadFile(meshPath, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+    const aiScene* scene = importer.ReadFile(meshPath, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals); // Usunięto GenNormals i CalcTangentSpace
     if (!scene || !scene->HasMeshes()) {
         printf("Model load failed: %s\n", importer.GetErrorString());
         return model;
@@ -176,27 +167,23 @@ Model loadModel(const char* meshPath, const std::string& textureDirectory) {
     for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
         const aiMesh* mesh = scene->mMeshes[i];
         unsigned int offset = meshData.vertices.size();
-        meshData.vertices.resize(offset + mesh->mNumVertices * 8);
+        meshData.vertices.resize(offset + mesh->mNumVertices * 5); // 3 (pos) + 2 (uv)
 
         for (unsigned int j = 0; j < mesh->mNumVertices; ++j) {
-            meshData.vertices[offset + j * 8 + 0] = mesh->mVertices[j].x;
-            meshData.vertices[offset + j * 8 + 1] = mesh->mVertices[j].y;
-            meshData.vertices[offset + j * 8 + 2] = mesh->mVertices[j].z;
-
-            meshData.vertices[offset + j * 8 + 3] = 0.0f;
-            meshData.vertices[offset + j * 8 + 4] = 0.0f;
-            meshData.vertices[offset + j * 8 + 5] = 0.0f;
+            meshData.vertices[offset + j * 5 + 0] = mesh->mVertices[j].x;
+            meshData.vertices[offset + j * 5 + 1] = mesh->mVertices[j].y;
+            meshData.vertices[offset + j * 5 + 2] = mesh->mVertices[j].z;
 
             if (mesh->HasTextureCoords(0)) {
-                meshData.vertices[offset + j * 8 + 6] = mesh->mTextureCoords[0][j].x;
-                meshData.vertices[offset + j * 8 + 7] = mesh->mTextureCoords[0][j].y;
+                meshData.vertices[offset + j * 5 + 3] = mesh->mTextureCoords[0][j].x;
+                meshData.vertices[offset + j * 5 + 4] = mesh->mTextureCoords[0][j].y;
             } else {
-                meshData.vertices[offset + j * 8 + 6] = 0.0f;
-                meshData.vertices[offset + j * 8 + 7] = 0.0f;
+                meshData.vertices[offset + j * 5 + 3] = 0.0f;
+                meshData.vertices[offset + j * 5 + 4] = 0.0f;
             }
         }
-
-        unsigned int indexOffset = offset / 8;
+        
+        unsigned int indexOffset = offset / 5;
         for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
             const aiFace& face = mesh->mFaces[j];
             for (unsigned int k = 0; k < face.mNumIndices; ++k) {
@@ -204,7 +191,7 @@ Model loadModel(const char* meshPath, const std::string& textureDirectory) {
             }
         }
     }
-
+    
     const aiMesh* mesh = scene->mMeshes[0];
     model.material = loadMaterial(scene, mesh, textureDirectory);
 
@@ -220,7 +207,7 @@ Model loadModel(const char* meshPath, const std::string& textureDirectory) {
     return model;
 }
 
-// --- Inicjalizacja ---
+// --- Inicjalizacja (bez zmian) ---
 bool init() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) return false;
 
@@ -250,7 +237,7 @@ bool init() {
     return harpyModel.indexCount > 0;
 }
 
-// --- Render ---
+// --- Render (bez zmian) ---
 void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     harpyModel.render(program, rotX, rotY);
@@ -274,7 +261,7 @@ void loop() {
     render();
 }
 
-// --- Główna funkcja ---
+// --- Główna funkcja (bez zmian) ---
 int main() {
     if (!init()) {
         printf("Initialization failed.\n");
@@ -290,4 +277,5 @@ int main() {
     IMG_Quit();
 
     return 0;
-}
+}    
+        
