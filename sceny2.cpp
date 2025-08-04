@@ -8,10 +8,9 @@
 #include <cmath>
 #include <stdio.h>
 #include <SDL_image.h>
-#include <unistd.h>
 #include <string>
 
-// Globalne zmienne, ale teraz uproszczone
+// Globalne zmienne, bez zmian
 SDL_Window* window;
 SDL_GLContext glContext;
 float rotX = 0, rotY = 0;
@@ -19,12 +18,13 @@ bool mouseDown = false;
 int lastX, lastY;
 GLuint program;
 
-// --- Nowe struktury ---
+// --- Struktury i klasy ---
 struct MeshData {
     std::vector<float> vertices; // Pozycja(3), Normalna(3), UV(2)
     std::vector<unsigned int> indices;
 };
 
+// Struktura materiału - bez zmian
 struct Material {
     GLuint diffuse = 0;
     GLuint specular = 0;
@@ -41,13 +41,11 @@ public:
     void render(GLuint program, float rotX, float rotY) {
         glUseProgram(program);
 
-        // Ustawienie uniformów rotacji
         GLint rotXLoc = glGetUniformLocation(program, "rotX");
         GLint rotYLoc = glGetUniformLocation(program, "rotY");
         glUniform1f(rotXLoc, rotX);
         glUniform1f(rotYLoc, rotY);
         
-        // Wiązanie tekstur z Material
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, material.diffuse);
         glUniform1i(glGetUniformLocation(program, "tex"), 0);
@@ -64,11 +62,9 @@ public:
         glBindTexture(GL_TEXTURE_2D, material.emissive);
         glUniform1i(glGetUniformLocation(program, "emissiveMap"), 3);
 
-        // Wiązanie buforów
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
-        // Konfiguracja atrybutów wierzchołków
         GLint posLoc = glGetAttribLocation(program, "aPos");
         GLint normalLoc = glGetAttribLocation(program, "aNormal");
         GLint uvLoc = glGetAttribLocation(program, "aUV");
@@ -82,14 +78,11 @@ public:
         glEnableVertexAttribArray(uvLoc);
         glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
         
-        // Rysowanie elementów z bufora indeksów
         glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
     }
-
     void cleanup() {
         glDeleteBuffers(1, &vbo);
         glDeleteBuffers(1, &ibo);
-        // Zwalnianie tekstur
         glDeleteTextures(1, &material.diffuse);
         glDeleteTextures(1, &material.specular);
         glDeleteTextures(1, &material.normal);
@@ -99,9 +92,8 @@ public:
 
 Model harpyModel;
 
-// --- Funkcje pomocnicze (bez zmian) ---
+// --- Funkcje pomocnicze ---
 GLuint compileShader(GLenum type, const char* source) {
-    // ... (kod bez zmian) ...
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
@@ -115,15 +107,18 @@ GLuint compileShader(GLenum type, const char* source) {
     return shader;
 }
 
+// Funkcja ładowania pojedynczej tekstury z materiału Assimp
 GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::string& directory) {
     if (mat->GetTextureCount(type) > 0) {
         aiString path;
         mat->GetTexture(type, 0, &path);
 
-        std::string fullPath = directory + "/" + path.C_Str();
+        // Sklejamy katalog z nazwą pliku z Assimp
+        std::string fullPath = directory + "/" + std::string(path.C_Str());
+        
         SDL_Surface* surface = IMG_Load(fullPath.c_str());
         if (!surface) {
-            printf("Nie udalo sie zaladowac: %s\n", fullPath.c_str());
+            printf("Nie udalo sie zaladowac tekstury: %s\n", fullPath.c_str());
             return 0;
         }
         printf("Zaladowano teksture: %s\n", fullPath.c_str());
@@ -144,28 +139,33 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
     return 0;
 }
 
+// Funkcja ładowania wszystkich tekstur dla danego materiału
 Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::string& directory) {
     Material mat;
     if (!scene->HasMaterials()) return mat;
+    
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
     mat.diffuse  = loadTextureFromMaterial(material, aiTextureType_DIFFUSE, directory);
     mat.specular = loadTextureFromMaterial(material, aiTextureType_SPECULAR, directory);
     mat.normal   = loadTextureFromMaterial(material, aiTextureType_NORMALS, directory);
     mat.emissive = loadTextureFromMaterial(material, aiTextureType_EMISSIVE, directory);
+
     return mat;
 }
 
+// Funkcja do wczytywania geometrii
 MeshData loadMeshFromAssimp(const char* path) {
-    // ... (kod bez zmian) ...
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
     MeshData meshData;
 
     if (!scene || !scene->HasMeshes()) {
-        printf("Failed to load: %s\n", importer.GetErrorString());
+        printf("Failed to load mesh: %s\n", importer.GetErrorString());
         return meshData;
     }
     printf("Model loaded successfully. Found %d meshes.\n", scene->mNumMeshes);
+    // ... reszta kodu do wczytywania wierzchołków i indeksów bez zmian ...
     for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
         const aiMesh* mesh = scene->mMeshes[i];
         unsigned int currentVerticesSize = meshData.vertices.size();
@@ -204,7 +204,7 @@ MeshData loadMeshFromAssimp(const char* path) {
 }
 
 
-// --- Nowa wersja funkcji loadModel, która ładuje model i jego materiały
+// --- Nowa wersja funkcji loadModel, która łączy ładowanie geometrii i materiałów
 Model loadModel(const char* meshPath, const std::string& textureDirectory) {
     Model newModel;
     Assimp::Importer importer;
@@ -217,13 +217,48 @@ Model loadModel(const char* meshPath, const std::string& textureDirectory) {
     );
 
     if (!scene || !scene->HasMeshes()) {
-        printf("Nie udało się załadować modelu: %s\n", importer.GetErrorString());
+        printf("Nie udalo sie zaladowac modelu: %s\n", importer.GetErrorString());
         return Model();
     }
+    
+    // Wczytujemy dane siatki za pomocą istniejącej funkcji
+    MeshData meshData;
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+        const aiMesh* mesh = scene->mMeshes[i];
+        unsigned int currentVerticesSize = meshData.vertices.size();
+        meshData.vertices.resize(currentVerticesSize + mesh->mNumVertices * 8);
 
-    MeshData meshData = loadMeshFromAssimp(meshPath);
+        for (unsigned int j = 0; j < mesh->mNumVertices; ++j) {
+            meshData.vertices[currentVerticesSize + j * 8 + 0] = mesh->mVertices[j].x;
+            meshData.vertices[currentVerticesSize + j * 8 + 1] = mesh->mVertices[j].y;
+            meshData.vertices[currentVerticesSize + j * 8 + 2] = mesh->mVertices[j].z;
+            
+            if (mesh->HasNormals()){
+                meshData.vertices[currentVerticesSize + j * 8 + 3] = mesh->mNormals[j].x;
+                meshData.vertices[currentVerticesSize + j * 8 + 4] = mesh->mNormals[j].y;
+                meshData.vertices[currentVerticesSize + j * 8 + 5] = mesh->mNormals[j].z;
+            } else {
+                meshData.vertices[currentVerticesSize + j * 8 + 3] = 0.0f; meshData.vertices[currentVerticesSize + j * 8 + 4] = 0.0f; meshData.vertices[currentVerticesSize + j * 8 + 5] = 0.0f;
+            }
+
+            if (mesh->HasTextureCoords(0)){
+                meshData.vertices[currentVerticesSize + j * 8 + 6] = mesh->mTextureCoords[0][j].x;
+                meshData.vertices[currentVerticesSize + j * 8 + 7] = mesh->mTextureCoords[0][j].y;
+            } else {
+                meshData.vertices[currentVerticesSize + j * 8 + 6] = 0.0f; meshData.vertices[currentVerticesSize + j * 8 + 7] = 0.0f;
+            }
+        }
+        unsigned int indexOffset = currentVerticesSize / 8;
+        for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
+            const aiFace& face = mesh->mFaces[j];
+            for (unsigned int k = 0; k < face.mNumIndices; ++k) {
+                meshData.indices.push_back(face.mIndices[k] + indexOffset);
+            }
+        }
+    }
+    
+    // Wczytujemy materiał
     const aiMesh* mesh = scene->mMeshes[0];
-
     newModel.material = loadMaterial(scene, mesh, textureDirectory);
 
     glGenBuffers(1, &newModel.vbo);
@@ -242,29 +277,7 @@ Model loadModel(const char* meshPath, const std::string& textureDirectory) {
     return newModel;
 }
 
-// --- Shader code (poprawiona, aby używać wszystkich tekstur) ---
-const char* vs = R"(
-attribute vec3 aPos;
-attribute vec3 aNormal;
-attribute vec2 aUV;
-
-varying vec3 vNormal;
-varying vec2 vUV;
-
-uniform float rotX, rotY;
-
-void main(){
-    float cx = cos(rotX), sx = sin(rotX);
-    float cy = cos(rotY), sy = sin(rotY);
-    mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
-    mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
-    vec3 p = Ry * Rx * aPos;
-    gl_Position = vec4(p * 0.1, 1.0);
-    vNormal = normalize(Ry * Rx * aNormal);
-    vUV = aUV;
-}
-)";
-
+// --- Fragment shader z poprawionym łączeniem tekstur ---
 const char* fs = R"(
 precision mediump float;
 
@@ -277,18 +290,17 @@ varying vec2 vUV;
 
 void main() {
     vec4 diffuseColor  = texture2D(tex, vUV);
-    vec4 specularColor = texture2D(specularMap, vUV);
-    vec4 normalColor   = texture2D(normalMap, vUV);
-    vec4 emissiveColor = texture2D(emissiveMap, vUV);
-
-    // Przykładowe połączenie kolorów z tekstur, możesz to zmienić
+    // Możesz łączyć kolory tekstur, np.:
+    // vec4 specularColor = texture2D(specularMap, vUV);
+    // gl_FragColor = diffuseColor * (1.0 - specularColor);
+    
     gl_FragColor = diffuseColor; 
 }
 )";
 
 // --- Główny kod programu (poprawiony) ---
 bool init() {
-    // ... (inicjalizacja bez zmian) ...
+    // ... inicjalizacja SDL/OpenGL bez zmian ...
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         printf("SDL_Init Error: %s\n", SDL_GetError());
         return false;
@@ -307,14 +319,12 @@ bool init() {
     }
     glViewport(0, 0, 640, 480);
     glClearColor(0.1f, 0.9f, 0.1f, 1.0f);
-
     int imgFlags = IMG_INIT_JPG | IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         printf("SDL_image nie moglo sie zainicjalizowac! SDL_image Error: %s\n", IMG_GetError());
         return false;
     }
 
-    // Ładowanie shaderów
     GLuint vsId = compileShader(GL_VERTEX_SHADER, vs);
     GLuint fsId = compileShader(GL_FRAGMENT_SHADER, fs);
     program = glCreateProgram();
@@ -322,22 +332,20 @@ bool init() {
     glAttachShader(program, fsId);
     glLinkProgram(program);
 
-    // --- Ładowanie modelu za pomocą nowej funkcji ---
-    harpyModel = loadModel("asserts/Harpy.fbx", "asserts"); // Poprawne wywołanie
+    // --- Ładowanie modelu ---
+    harpyModel = loadModel("asserts/Harpy.fbx", "asserts");
     if(harpyModel.indexCount == 0) {
         printf("Failed to load Harpy model.\n");
         return false;
     }
+
     return true;
 }
 
 void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    
-    // Renderowanie modelu
     harpyModel.render(program, rotX, rotY);
-    
     SDL_GL_SwapWindow(window);
 }
 
