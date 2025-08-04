@@ -155,10 +155,37 @@ Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::strin
     }
 
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    printf("Znaleziono material. Sprawdzam, czy ma tekstury...\n");
+    printf("Znaleziono material. Skanuje wszystkie typy tekstur...\n");
     
-    // Pozostale linie do ladowania tekstur
+    // Lista wszystkich typow tekstur Assimp
+    const aiTextureType textureTypes[] = {
+        aiTextureType_DIFFUSE,
+        aiTextureType_SPECULAR,
+        aiTextureType_AMBIENT,
+        aiTextureType_EMISSIVE,
+        aiTextureType_HEIGHT,
+        aiTextureType_NORMALS,
+        aiTextureType_SHININESS,
+        aiTextureType_OPACITY,
+        aiTextureType_DISPLACEMENT,
+        aiTextureType_LIGHTMAP,
+        aiTextureType_UNKNOWN,
+    };
+    
+    for (const auto& type : textureTypes) {
+        if (material->GetTextureCount(type) > 0) {
+            aiString path;
+            material->GetTexture(type, 0, &path);
+            printf("Assimp znalazl teksture typu %d, sciezka: '%s'\n", type, path.C_Str());
+            
+            // Zamiast wczytywania, po prostu wypisz komunikat.
+            // Będziemy wczytywac tylko ta, ktora chcemy.
+        }
+    }
+    
+    // W tym miejscu wczytujemy tylko dyfuzyjna (jeśli ją znaleziono)
     mat.diffuse = loadTextureFromMaterial(material, aiTextureType_DIFFUSE, directory);
+
     return mat;
 }
 
