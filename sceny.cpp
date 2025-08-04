@@ -22,7 +22,13 @@ struct MeshData {
     std::vector<float> vertices; // Pozycja(3), Normalna(3), UV(2)
     std::vector<unsigned int> indices;
 };
-
+//tekstury w assimp
+struct Material {
+    GLuint diffuse = 0;
+    GLuint specular = 0;
+    GLuint normal = 0;
+    GLuint emissive = 0;
+};
 class Model {
 public:
     GLuint vbo, ibo, textureID;
@@ -76,6 +82,33 @@ public:
 Model harpyModel; // Instancja naszego modelu
 
 // --- Funkcje pomocnicze ---
+GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type) {
+    if (mat->GetTextureCount(type) > 0) {
+        aiString path;
+        mat->GetTexture(type, 0, &path);
+
+        std::string fullPath = std::string("asserts/") + path.C_Str();
+        SDL_Surface* surface = IMG_Load(fullPath.c_str());
+        if (!surface) {
+            printf("Nie udalo sie zaladowac: %s\n", fullPath.c_str());
+            return 0;
+        }
+
+        GLuint texID;
+        glGenTextures(1, &texID);
+        glBindTexture(GL_TEXTURE_2D, texID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        GLenum format = (surface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        SDL_FreeSurface(surface);
+        return texID;
+    }
+    return 0;
+}
 GLuint compileShader(GLenum type, const char* source) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
@@ -300,7 +333,7 @@ void loop(){
 }
 
 int main() {
-    system("ls asserts > texture.txt");
+ //   system("ls asserts > texture.txt");
     if (!init()) {
         printf("Initialization failed.\n");
         return 1;
