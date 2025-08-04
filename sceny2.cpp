@@ -306,24 +306,17 @@ const char* fs = R"(
 precision mediump float;
 
 uniform sampler2D tex;
-uniform sampler2D specularMap;
-uniform sampler2D normalMap;
-uniform sampler2D emissiveMap;
-
 varying vec2 vUV;
 
 void main() {
-    vec4 diffuseColor  = texture2D(tex, vUV);
-    // Możesz łączyć kolory tekstur, np.:
-    // vec4 specularColor = texture2D(specularMap, vUV);
-    // gl_FragColor = diffuseColor * (1.0 - specularColor);
-    if (diffuseColor.a < 0.1) {
-    gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0); // magenta, by zobaczyć "brak tekstury"
-} else {
-    gl_FragColor = diffuseColor;
-}
+    vec4 color = texture2D(tex, vUV);
 
-    //gl_FragColor = diffuseColor; 
+    // Debug: jeśli kolor czarny, pokaż UV jako kolor
+    if (color.rgb == vec3(0.0)) {
+        gl_FragColor = vec4(vUV, 1.0, 1.0);
+    } else {
+        gl_FragColor = color;
+    }
 }
 )";
 
