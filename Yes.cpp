@@ -149,8 +149,15 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
 
 Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::string& directory) {
     Material mat;
-    if (!scene->HasMaterials()) return mat;
+    if (!scene->HasMaterials()) {
+        printf("Brak materialow w scenie.\n");
+        return mat;
+    }
+
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    printf("Znaleziono material. Sprawdzam, czy ma tekstury...\n");
+    
+    // Pozostale linie do ladowania tekstur
     mat.diffuse = loadTextureFromMaterial(material, aiTextureType_DIFFUSE, directory);
     return mat;
 }
