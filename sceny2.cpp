@@ -121,8 +121,9 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
             printf("Nie udalo sie zaladowac tekstury: %s\n", fullPath.c_str());
             return 0;
         }
+        else{
         printf("Zaladowano teksture: %s\n", fullPath.c_str());
-
+        }
         GLuint texID;
         glGenTextures(1, &texID);
         glBindTexture(GL_TEXTURE_2D, texID);
@@ -316,8 +317,13 @@ void main() {
     // Możesz łączyć kolory tekstur, np.:
     // vec4 specularColor = texture2D(specularMap, vUV);
     // gl_FragColor = diffuseColor * (1.0 - specularColor);
-    
-    gl_FragColor = diffuseColor; 
+    if (diffuseColor.a < 0.1) {
+    gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0); // magenta, by zobaczyć "brak tekstury"
+} else {
+    gl_FragColor = diffuseColor;
+}
+
+    //gl_FragColor = diffuseColor; 
 }
 )";
 
