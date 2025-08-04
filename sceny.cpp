@@ -109,6 +109,19 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type) {
     }
     return 0;
 }
+Material loadMaterial(const aiScene* scene, const aiMesh* mesh) {
+    Material mat;
+    if (!scene->HasMaterials()) return mat;
+
+    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+    mat.diffuse  = loadTextureFromMaterial(material, aiTextureType_DIFFUSE);
+    mat.specular = loadTextureFromMaterial(material, aiTextureType_SPECULAR);
+    mat.normal   = loadTextureFromMaterial(material, aiTextureType_NORMALS);
+    mat.emissive = loadTextureFromMaterial(material, aiTextureType_EMISSIVE);
+
+    return mat;
+}
 GLuint compileShader(GLenum type, const char* source) {
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
@@ -209,8 +222,10 @@ Model loadModel(const char* meshPath, const char* texturePath) {
         return newModel;
     }
 
-    newModel.textureID = loadTexture(texturePath);
-
+   // newModel.textureID = loadTexture(texturePath);
+const aiMesh* mesh = scene->mMeshes[0];
+newModel.material = loadMaterial(scene, mesh);
+    
     glGenBuffers(1, &newModel.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, newModel.vbo);
     glBufferData(GL_ARRAY_BUFFER, meshData.vertices.size() * sizeof(float), meshData.vertices.data(), GL_STATIC_DRAW);
@@ -253,10 +268,22 @@ void main(){
 
 const char* fs = R"(
 precision mediump float;
+
 uniform sampler2D tex;
+uniform sampler2D specularMap;
+uniform sampler2D normalMap;
+uniform sampler2D emissiveMap;
+
 varying vec2 vUV;
+
 void main() {
-    gl_FragColor = texture2D(tex, vUV);
+    vec4 diffuseColor  = texture2D(tex, vUV);
+    vec4 specularColor = texture2D(specularMap, vUV);
+    vec4 normalColor   = texture2D(normalMap, vUV);
+    vec4 emissiveColor = texture2D(emissiveMap, vUV);
+
+    vec4 finalColor = diffuseColor + 0.3 * specularColor + 0.1 * emissiveColor;
+    gl_FragColor = finalColor;
 }
 )";
 
@@ -308,7 +335,22 @@ bool init() {
 void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    
+    glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, material.diffuse);
+glUniform1i(glGetUniformLocation(program, "tex"), 0);
+
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_2D, material.specular);
+glUniform1i(glGetUniformLocation(program, "specularMap"), 1);
+
+glActiveTexture(GL_TEXTURE2);
+glBindTexture(GL_TEXTURE_2D, material.normal);
+glUniform1i(glGetUniformLocation(program, "normalMap"), 2);
+
+glActiveTexture(GL_TEXTURE3);
+glBindTexture(GL_TEXTURE_2D, material.emissive);
+glUniform1i(glGetUniformLocation(program, "emissiveMap"), 3);
+
     // --- Renderowanie modelu za pomocą nowej metody ---
     harpyModel.render(program, rotX, rotY);
     
