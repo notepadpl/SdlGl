@@ -1,377 +1,761 @@
-#include <SDL_image.h> // Dodaj ten naglowek!
+kk    Assimp::Importer importer;
 
-// Zmienne globalne
-// ...
-GLuint texture; // Nowa zmienna dla tekstury
+    const Przejdź do treści
 
-// ...
+ChatGPT
 
-// Zmien w init()
+Zaloguj się
+Powiedziałeś(-aś):
+Hello
+ChatGPT powiedział:
+Hi there! How can I help you today?
+
+Powiedziałeś(-aś):
+Z szara glina nie radzi sobie acetonu w potoku...
+ChatGPT powiedział:
+To zdanie brzmi jak fragment poezji, gry słów albo coś surrealistycznego:
+
+"Z szara glina nie radzi sobie acetonu w potoku..."
+
+Można to interpretować na różne sposoby:
+
+Symbolicznie – może "szara glina" symbolizuje coś trwałego lub naturalnego, a "aceton" coś sztucznego, rozpuszczającego, co nie pasuje do natury. A "w potoku" – czyli w jakimś biegu wydarzeń, chaosie?
+
+Abstrakcyjnie – to może być po prostu eksperymentalne zdanie, mające brzmieć dziwnie i pobudzać wyobraźnię.
+
+Dosłownie – szara glina rzeczywiście może nie reagować dobrze z acetonem (rozpuszczalnikiem), ale "w potoku" nadaje temu absurdalny lub poetycki kontekst.
+
+Chcesz, żebym rozwinął to w wiersz, opowiadanie, czy wyjaśnił bardziej logicznie?
+
+Powiedziałeś(-aś):
+To jest szamot pochodna cementu radzi sobie z acetonem woda jakby tłusta ale płynie bo w sumie szara glina jest tłusta 
+ChatGPT powiedział:
+A, teraz to nabiera sensu — mówisz o szamocie, czyli materiale ogniotrwałym, który bywa mieszaniną gliny ogniotrwałej (szarej, tłustej) i innych składników, używanych np. do wykładania pieców, kominów czy kotłów. I piszesz, że:
+
+Radzi sobie z acetonem – czyli nie rozpuszcza się, nie reaguje, nie nasiąka zbytnio.
+
+Woda wygląda jak tłusta – to może być efekt wypływu przez materiał o wysokiej zawartości iłów (czyli tzw. "tłustej" gliny) albo reakcja z jakimś zanieczyszczeniem (np. resztkami olejów).
+
+Glina tłusta = plastyczna, gładka, mało przepuszczalna – dobrze się lepi, dobrze trzyma, ale wolno oddaje wodę.
+
+Czy Twoim celem jest:
+
+Sprawdzić odporność szamotu na różne substancje?
+
+Zrozumieć, jak się zachowuje w kontakcie z acetonem lub wodą?
+
+Użyć tego materiału w jakimś konkretnym projekcie (np. piec, rzeźba, odlew)?
+
+Chętnie pomogę dalej — daj znać, w jakim kierunku idziemy.
+
+Powiedziałeś(-aś):
+Dobrze nie muszę być ateista i nie muszę nikogo mordować wspaniałe czyż nie ? Teraz pomyślmy o tym projekcie c++ web asembler i sdl 
+ChatGPT powiedział:
+Tak, to naprawdę wspaniałe – wolność bycia sobą, bez konieczności spełniania cudzych oczekiwań czy popadania w skrajności. Zdrowy dystans do ideologii i przemocowych schematów to dobra baza do twórczego działania. Teraz — przechodząc do projektu:
+
+🔧 C++ + WebAssembly + SDL – czyli gra/aplikacja w przeglądarce
+To brzmi jak:
+
+„Chcę zbudować aplikację (np. grę albo interaktywną grafikę) w C++ z użyciem SDL, skompilowaną do WebAssembly, by uruchamiała się w przeglądarce.”
+
+🧩 Co potrzebujesz do takiego projektu?
+✅ 1. Środowisko
+C++ (np. g++, clang, albo najlepiej Emscripten – specjalny kompilator do WebAssembly)
+
+SDL2 (Simple DirectMedia Layer) – do grafiki, dźwięku, wejścia
+
+Emscripten SDK (kompiluje C++ do WebAssembly + JS)
+
+✅ 2. Instalacja Emscripten
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk
+./emsdk install latest
+./emsdk activate latest
+source ./emsdk_env.sh
+✅ 3. Prosty program w SDL
+#include <SDL.h>
+
+int main() {
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window* window = SDL_CreateWindow("Hello WebAssembly",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, 0);
+    SDL_Delay(3000); // pokaz okno przez 3 sekundy
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
+}
+✅ 4. Kompilacja do WebAssembly
+emcc main.cpp -s USE_SDL=2 -s WASM=1 -o index.html
+To stworzy:
+
+index.html – do uruchomienia w przeglądarce
+
+index.js – kod ładujący
+
+index.wasm – właściwy skompilowany kod
+
+💡 Pomysły na projekt
+Symulacja fizyczna gliny/szamotu (pasuje do klimatu rozmowy!)
+
+Gra 2D z efektami cząsteczek jak płynąca "tłusta" woda
+
+Eksperymentalny interaktywny poemat/świat dźwiękowy
+
+Mini edytor tekstur lub rzeźbiarka 2D w glinie
+
+Chcesz, żebym pomógł Ci przygotować szkielet takiego projektu? A może masz konkretny pomysł, który chcesz ze mną dopracować?
+
+Powiedziałeś(-aś):
+Popatrz co gremlin ai od Google wymyślił :
+#include <SDL.h>
+#include <GLES2/gl2.h>
+#include <emscripten.h>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <vector>
+#include <cmath>
+#include <stdio.h>
+#include <SDL_image.h>
+#include <unistd.h>
+// Globalne zmienne, ale teraz uproszczone
+SDL_Window* window;
+SDL_GLContext glContext;
+float rotX = 0, rotY = 0;
+bool mouseDown = false;
+int lastX, lastY;
+GLuint program;
+
+// --- Nowa struktura dla modelu ---
+struct MeshData {
+    std::vector<float> vertices; // Pozycja(3), Normalna(3), UV(2)
+    std::vector<unsigned int> indices;
+};
+
+class Model {
+public:
+    GLuint vbo, ibo, textureID;
+    size_t indexCount;
+
+    // Metoda renderująca model
+    void render(GLuint program, float rotX, float rotY) {
+        glUseProgram(program);
+
+        // Ustawienie uniformów rotacji
+        GLint rotXLoc = glGetUniformLocation(program, "rotX");
+        GLint rotYLoc = glGetUniformLocation(program, "rotY");
+        glUniform1f(rotXLoc, rotX);
+        glUniform1f(rotYLoc, rotY);
+        
+        // Wiązanie tekstury
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glUniform1i(glGetUniformLocation(program, "tex"), 0);
+
+        // Wiązanie buforów
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+        // Konfiguracja atrybutów wierzchołków
+        GLint posLoc = glGetAttribLocation(program, "aPos");
+        GLint normalLoc = glGetAttribLocation(program, "aNormal");
+        GLint uvLoc = glGetAttribLocation(program, "aUV");
+        
+        glEnableVertexAttribArray(posLoc);
+        glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)0);
+        
+        glEnableVertexAttribArray(normalLoc);
+        glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 3));
+        
+        glEnableVertexAttribArray(uvLoc);
+        glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
+        
+        // Rysowanie elementów z bufora indeksów
+        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
+    }
+
+    // Metoda zwalniająca zasoby
+    void cleanup() {
+        glDeleteBuffers(1, &vbo);
+        glDeleteBuffers(1, &ibo);
+        glDeleteTextures(1, &textureID);
+    }
+};
+
+Model harpyModel; // Instancja naszego modelu
+
+// --- Funkcje pomocnicze ---
+GLuint compileShader(GLenum type, const char* source) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, NULL);
+    glCompileShader(shader);
+
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char info[512];
+        glGetShaderInfoLog(shader, 512, NULL, info);
+        printf("Shader error: %s\n", info);
+    }
+    return shader;
+}
+
+MeshData loadMeshFromAssimp(const char* path) {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+    MeshData meshData;
+
+    if (!scene || !scene->HasMeshes()) {
+        printf("Failed to load: %s\n", importer.GetErrorString());
+        return meshData;
+    }
+    printf("Model loaded successfully. Found %d meshes.\n", scene->mNumMeshes);
+
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+        const aiMesh* mesh = scene->mMeshes[i];
+        unsigned int currentVerticesSize = meshData.vertices.size();
+        meshData.vertices.resize(currentVerticesSize + mesh->mNumVertices * 8);
+
+        for (unsigned int j = 0; j < mesh->mNumVertices; ++j) {
+            meshData.vertices[currentVerticesSize + j * 8 + 0] = mesh->mVertices[j].x;
+            meshData.vertices[currentVerticesSize + j * 8 + 1] = mesh->mVertices[j].y;
+            meshData.vertices[currentVerticesSize + j * 8 + 2] = mesh->mVertices[j].z;
+            
+            if (mesh->HasNormals()){
+                meshData.vertices[currentVerticesSize + j * 8 + 3] = mesh->mNormals[j].x;
+                meshData.vertices[currentVerticesSize + j * 8 + 4] = mesh->mNormals[j].y;
+                meshData.vertices[currentVerticesSize + j * 8 + 5] = mesh->mNormals[j].z;
+            } else {
+                meshData.vertices[currentVerticesSize + j * 8 + 3] = 0.0f; meshData.vertices[currentVerticesSize + j * 8 + 4] = 0.0f; meshData.vertices[currentVerticesSize + j * 8 + 5] = 0.0f;
+            }
+
+            if (mesh->HasTextureCoords(0)){
+                meshData.vertices[currentVerticesSize + j * 8 + 6] = mesh->mTextureCoords[0][j].x;
+                meshData.vertices[currentVerticesSize + j * 8 + 7] = mesh->mTextureCoords[0][j].y;
+            } else {
+                meshData.vertices[currentVerticesSize + j * 8 + 6] = 0.0f; meshData.vertices[currentVerticesSize + j * 8 + 7] = 0.0f;
+            }
+        }
+
+        unsigned int indexOffset = currentVerticesSize / 8;
+        for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
+            const aiFace& face = mesh->mFaces[j];
+            for (unsigned int k = 0; k < face.mNumIndices; ++k) {
+                meshData.indices.push_back(face.mIndices[k] + indexOffset);
+            }
+        }
+    }
+    printf("Total Vertices: %zu, Total Indices: %zu\n", meshData.vertices.size() / 8, meshData.indices.size());
+    return meshData;
+}
+
+GLuint loadTexture(const char* path) {
+    SDL_Surface* surface = IMG_Load(path);
+    if (!surface) {
+        printf("Nie udalo sie zaladowac obrazu! SDL_image Error: %s\n", IMG_GetError());
+        return 0;
+    }
+    printf("Tekstura zaladowana pomyslnie: %s\n", path);
+
+    GLuint texID;
+    glGenTextures(1, &texID);
+    glBindTexture(GL_TEXTURE_2D, texID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    GLenum format;
+    if (surface->format->BytesPerPixel == 4) {
+        format = GL_RGBA;
+    } else {
+        format = GL_RGB;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    SDL_FreeSurface(surface);
+    return texID;
+}
+
+Model loadModel(const char* meshPath, const char* texturePath) {
+    Model newModel;
+    MeshData meshData = loadMeshFromAssimp(meshPath);
+    if(meshData.indices.empty()) {
+        printf("Error: Model data is empty.\n");
+        return newModel;
+    }
+
+    newModel.textureID = loadTexture(texturePath);
+
+    glGenBuffers(1, &newModel.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, newModel.vbo);
+    glBufferData(GL_ARRAY_BUFFER, meshData.vertices.size() * sizeof(float), meshData.vertices.data(), GL_STATIC_DRAW);
+
+    glGenBuffers(1, &newModel.ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, newModel.ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, meshData.indices.size() * sizeof(unsigned int), meshData.indices.data(), GL_STATIC_DRAW);
+    
+    newModel.indexCount = meshData.indices.size();
+
+    // Odwiązanie buforów, aby uniknąć problemów w innych częściach kodu
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    return newModel;
+}
+
+// --- Shader code (bez zmian) ---
+const char* vs = R"(
+attribute vec3 aPos;
+attribute vec3 aNormal;
+attribute vec2 aUV;
+
+varying vec3 vNormal;
+varying vec2 vUV;
+
+uniform float rotX, rotY;
+
+void main(){
+    float cx = cos(rotX), sx = sin(rotX);
+    float cy = cos(rotY), sy = sin(rotY);
+    mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
+    mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
+    vec3 p = Ry * Rx * aPos;
+    gl_Position = vec4(p * 0.1, 1.0);
+    vNormal = normalize(Ry * Rx * aNormal);
+    vUV = aUV;
+}
+)";
+
+const char* fs = R"(
+precision mediump float;
+uniform sampler2D tex;
+varying vec2 vUV;
+void main() {
+    gl_FragColor = texture2D(tex, vUV);
+}
+)";
+
+
 bool init() {
-    // ... [istniejący kod inicjalizacji SDL i okna]
-    // ...
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL_Init Error: %s\n", SDL_GetError());
+        return false;
+    }
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    window = SDL_CreateWindow("OBJ Viewer", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_OPENGL);
+    if (!window) {
+        printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
+        return false;
+    }
+    glContext = SDL_GL_CreateContext(window);
+    if (!glContext) {
+        printf("SDL_GL_CreateContext Error: %s\n", SDL_GetError());
+        return false;
+    }
+    glViewport(0, 0, 640, 480);
+    glClearColor(0.1f, 0.9f, 0.1f, 1.0f);
 
-    // inicjalizacja SDL_image
     int imgFlags = IMG_INIT_JPG | IMG_INIT_PNG;
     if (!(IMG_Init(imgFlags) & imgFlags)) {
         printf("SDL_image nie moglo sie zainicjalizowac! SDL_image Error: %s\n", IMG_GetError());
         return false;
     }
 
-    // Zaladowanie tekstury
-    SDL_Surface* surface = IMG_Load("assets/Earth 2K.jpg"); // Zalozmy, ze masz taki plik
-    if (!surface) {
-        printf("Nie udalo sie zaladowac obrazu! SDL_image Error: %s\n", IMG_GetError());
+    // Ładowanie shaderów
+    GLuint vsId = compileShader(GL_VERTEX_SHADER, vs);
+    GLuint fsId = compileShader(GL_FRAGMENT_SHADER, fs);
+    program = glCreateProgram();
+    glAttachShader(program, vsId);
+    glAttachShader(program, fsId);
+    glLinkProgram(program);
+
+    // --- Ładowanie modelu za pomocą nowej funkcji ---
+    harpyModel = loadModel("asserts/Harpy.fbx", "asserts/Hair.png");
+    if(harpyModel.indexCount == 0) {
+        printf("Failed to load Harpy model.\n");
         return false;
     }
-    printf("Tekstura zaladowana pomyslnie.\n");
 
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    SDL_FreeSurface(surface); // Zwolnij pamiec z powierzchni SDL
-
-    // ... [reszta kodu init, lacznie z buforami VBO i IBO]
-    // ...
     return true;
 }
 
-// Zmien w render()
 void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    glUseProgram(program);
-
-    // Bindowanie tekstury przed rysowaniem
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    glUniform1i(glGetUniformLocation(program, "tex"), 0);
-
-    // Przekazanie wartosci rotacji do shadera
-    GLint rotXLoc = glGetUniformLocation(program, "rotX");
-    GLint rotYLoc = glGetUniformLocation(program, "rotY");
-    glUniform1f(rotXLoc, rotX);
-    glUniform1f(rotYLoc, rotY);
-
-    // Bindowanie buforow
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-
-    glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, (void*)0);
+    
+    // --- Renderowanie modelu za pomocą nowej metody ---
+    harpyModel.render(program, rotX, rotY);
+    
     SDL_GL_SwapWindow(window);
 }
-Przejdź do treści
 
-ChatGPT
+void loop(){
+    SDL_Event e;
+    while(SDL_PollEvent(&e)){
+        if (e.type == SDL_QUIT) emscripten_cancel_main_loop();
+        else if(e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){
+            mouseDown = true; lastX = e.button.x; lastY = e.button.y;
+        } else if(e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT){
+            mouseDown = false;
+        } else if(e.type == SDL_MOUSEMOTION && mouseDown){
+            rotY += (e.motion.x - lastX) * 0.01f;
+            rotX += (e.motion.y - lastY) * 0.01f;
+            lastX = e.motion.x; lastY = e.motion.y;
+        }
+    }
+    render();
+}
 
-Zaloguj się
-Powiedziałeś(-aś):
-Cala ta funkcja jest zła
-Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
-    Mesh mesh;
-    Assimp::Importer importer;
-
-    /*Używamy PreTransformVertices i ConvertToLeftHanded
-    const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate |
-        aiProcess_JoinIdenticalVertices |
-        aiProcess_PreTransformVertices |
-        aiProcess_GenSmoothNormals |
-        aiProcess_FlipUVs);*/
-const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals);
-
+int main() {
+    system("ls asserts > texture.txt");
+    if (!init()) {
+        printf("Initialization failed.\n");
+        return 1;
+    }
+    emscripten_set_main_loop(loop, 0, 1);
     
-    if (!scene || !scene->HasMeshes()) {
-        printf("Assimp error: %s\n", importer.GetErrorString());
-        return mesh;
-    }
+    harpyModel.cleanup();
+    SDL_GL_DeleteContext(glContext);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    IMG_Quit();
 
-    const float scale = 0.02f;  // Skalowanie modelu (opcjonalne)
-
-    unsigned int vertexOffset = 0;
-
-    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
-        const aiMesh* m = scene->mMeshes[mIndex];
-
-        // Wczytaj wierzchołki
-        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
-            aiVector3D pos = m->mVertices[i];
-            aiVector3D uv = m->HasTextureCoords(0) ? m->mTextureCoords[0][i] : aiVector3D(0, 0, 0);
-            aiVector3D norm = m->HasNormals() ? m->mNormals[i] : aiVector3D(0, 1, 0);
-
-            // Skalujemy pozycję, reszta bez zmian
-            mesh.vertices.push_back(pos.x * scale);
-            mesh.vertices.push_back(pos.y * scale);
-            mesh.vertices.push_back(pos.z * scale);
-
-            mesh.vertices.push_back(uv.x);
-            mesh.vertices.push_back(uv.y);
-
-            mesh.vertices.push_back(norm.x);
-            mesh.vertices.push_back(norm.y);
-            mesh.vertices.push_back(norm.z);
-        }
-
-        // Wczytaj indeksy (uwzględniając przesunięcie)
-        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
-            const aiFace& face = m->mFaces[f];
-            for (unsigned int j = 0; j < face.mNumIndices; ++j) {
-                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
-            }
-        }
-
-        vertexOffset += m->mNumVertices;
-    }
-
-    // Wczytaj materiały (osobno, po meshach)
-    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-        aiMaterial* mat = scene->mMaterials[i];
-        aiString texPath;
-        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
-            std::string textureFile = texPath.C_Str();
-            materialsOut[textureFile].texPath = textureFile;
-        }
-    }
-
-    return mesh;
+    return 0;
 }
+Działa i można wiele modeli lądować wspaniałe. Przydały by się kości i jakiś sposób żeby lądować wszystkie tekstury do modelu 
 ChatGPT powiedział:
-Twoja funkcja loadMeshFromAssimp działa w podstawowym zakresie, ale zawiera kilka problemów, potencjalnych błędów oraz braki w zakresie jakości kodu i obsługi wyjątków. Poniżej wypisuję, co dokładnie jest „złe” lub może być problematyczne:
+To, co przedstawiłeś, to naprawdę solidna baza pod silnik WebGLowy dla modeli 3D z C++/SDL/Assimp przez WebAssembly — duży szacunek dla Gremlin AI albo Twojej współpracy z nim.
 
-🔴 1. Błędne lub niepełne przetwarzanie materiałów
-materialsOut[textureFile].texPath = textureFile;
-To nadpisuje materiał bez powiązania z konkretnym aiMesh. Nie wiesz, który mesh używa którego materiału. A przecież każdy aiMesh ma mMaterialIndex.
+🔍 Co już masz:
+✔️ Załadowany model z Assimp (FBX, OBJ itd.)
+✔️ Tekstura przypisana do jednego pliku
+✔️ Rendering w WebGL przez OpenGL ES 2.0
+✔️ Interakcja myszką (rotacja)
+✔️ Kompilacja do WebAssembly przez Emscripten
+✔️ Modułowa struktura z Model, MeshData, shaderami
+✔️ SDL + SDL_image
 
-🛠 Poprawka:
-Zamiast przetwarzać materiały osobno, przetwarzaj je per mesh i przypisuj materiał danemu meshowi lub zwróć z mapowaniem.
+🔧 Co możemy teraz rozbudować?
+🦴 1. Kości / animacje szkieletowe (skinning)
+Assimp wspiera dane szkieletowe (kości, wagi, animacje). Ale ich obsługa jest sporo bardziej złożona. Skrótowo:
 
-🔴 2. Brak obsługi transformacji sceny
-Zostawiłeś zakomentowaną opcję aiProcess_PreTransformVertices, ale bez niej, aiMesh nie zawiera transformacji węzłów (aiNode). To oznacza, że pozycje są lokalne względem węzła, a nie całej sceny.
+Co trzeba dodać:
+Shader, który obsługuje matryce kości i wagę kości na każdy wierzchołek
 
-🛠 Poprawka:
-Albo włącz aiProcess_PreTransformVertices, albo przetwórz rekursywnie aiNode i stosuj node->mTransformation ręcznie.
+Struktura Bone, Animation, Skeleton, VertexWeight
 
-🟠 3. Składanie UV, normalnych i pozycji do jednego wektora mesh.vertices
-To koduje dane jako [x, y, z, u, v, nx, ny, nz], co działa, ale jest:
+Wczytywanie mesh->mBones i scene->mAnimations
 
-trudne do debugowania,
+Obliczanie transformacji kości w runtime (w pętli animacji)
 
-trudne do użycia z np. glVertexAttribPointer (potrzeba znać offsety i stride),
+Przesłanie MAX_BONES matryc do GPU (uniform array lub texture)
 
-nieczytelne.
+Jeśli chcesz — mogę przygotować szkielet tego systemu z prostą animacją, np. machającą ręką.
 
-🛠 Lepsza praktyka:
-Zdefiniuj strukturę:
+🎨 2. Automatyczne ładowanie wielu tekstur z Assimp
+Twoja funkcja loadModel() ładuje tylko JEDNĄ teksturę ręcznie. Assimp potrafi przechowywać tekstury w aiMaterial, np.:
 
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec2 uv;
-    glm::vec3 normal;
-};
-I przechowuj std::vector<Vertex> zamiast gołego floatowego mesh.vertices.
+aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+aiString texturePath;
+material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
+✅ Co trzeba:
+Pętla po aiMaterial i aiTextureType_* (DIFFUSE, NORMALS, SPECULAR itd.)
 
-🟠 4. Brak obsługi innych kanałów tekstur
-Wczytujesz tylko aiTextureType_DIFFUSE, a modele mogą mieć także NORMALS, SPECULAR, EMISSIVE, itd.
+Obsługa wielu tekstur per mesh
 
-🛠 Poprawka:
-Dodaj obsługę pozostałych typów tekstur, np.:
+Struktura Material z mapami tekstur
 
-for (int type = aiTextureType_NONE; type <= aiTextureType_UNKNOWN; ++type)
-🟡 5. Brak sprawdzania poprawności UV i normalnych
-Jeśli mesh nie ma UV lub normalnych, wrzucasz zero bez ostrzeżenia, co może skutkować wizualnymi błędami, a trudne jest to do wykrycia.
-
-🛠 Dodaj ostrzeżenia:
-
-if (!m->HasTextureCoords(0)) {
-    std::cerr << "Warning: Mesh has no UVs\n";
-}
-🟡 6. Brak obsługi osadzonych tekstur (embedded textures)
-Assimp wspiera tekstury wbudowane w plik (np. .fbx). Ty ich nie uwzględniasz.
-
-🟢 Inne sugestie:
-Warto dodać logowanie liczby wierzchołków, materiałów itp. do debugowania.
-
-Rozważ użycie aiProcess_OptimizeMeshes i aiProcess_ImproveCacheLocality.
-
-Nie masz żadnej obsługi animacji (jeśli zamierzasz), ale może to zamierzone.
-
-✅ Podsumowanie – Co warto poprawić?
-Problem	Ważność	Rozwiązanie
-Brak transformacji nodów	🔴	Użyj PreTransformVertices lub rekursja po aiNode
-Brak przypisania materiałów do meshów	🔴	Użyj mMaterialIndex każdego mesha
-Wspólny float-array dla vertex data	🟠	Zmień na strukturę Vertex
-Brak logów/ostrzeżeń przy braku danych	🟡	Dodaj std::cerr lub logger
-Ograniczona obsługa tekstur	🟠	Obsłuż więcej typów (normal map itd.)
-Jeśli chcesz, mogę przygotować dla Ciebie poprawioną wersję funkcji z lepszym designem i bez tych błędów. Czy chcesz?
-
-Powiedziałeś(-aś):
-Tak
-ChatGPT powiedział:
-Świetnie! Oto poprawiona i lepiej zaprojektowana wersja funkcji loadMeshFromAssimp, z następującymi usprawnieniami:
-
-✅ Zmiany względem Twojej wersji:
-Obsługa transformacji węzłów (aiNode) bez aiProcess_PreTransformVertices
-
-Struktura Vertex zamiast surowych floatów
-
-Obsługa materiałów powiązanych z konkretnymi meshami (przez mMaterialIndex)
-
-Lepsze skalowanie (opcjonalne)
-
-Logi ostrzegawcze przy braku danych
-
-Obsługa wielu typów tekstur (diffuse + normal)
-
-🧠 Założenia pomocnicze:
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <string>
-
-struct Vertex {
-    float x, y, z;
-    float u, v;
-    float nx, ny, nz;
-};
-
+Możliwa struktura:
 struct Material {
-    std::string texPathDiffuse;
-    std::string texPathNormal;
+    GLuint diffuseTex = 0;
+    GLuint normalTex = 0;
+    GLuint specularTex = 0;
+    // ...
 };
 
 struct Mesh {
-    std::vector<Vertex> vertices;
-    std::vector<unsigned int> indices;
-    std::vector<Material> materials;
-    std::vector<int> materialIndices; // indeks materiału przypisany do każdej twarzy
+    GLuint vbo, ibo;
+    size_t indexCount;
+    Material material;
 };
-✅ Poprawiona funkcja
-Mesh loadMeshFromAssimp(const std::string& path, std::unordered_map<std::string, Material>& materialsOut, const std::string& basePath) {
-    Mesh mesh;
-    Assimp::Importer importer;
+Chcesz, żebym Ci to rozpisał i dopisał kod do ładowania tekstur z materiałów?
 
-    const aiScene* scene = importer.ReadFile(path,
-        aiProcess_Triangulate |
-        aiProcess_JoinIdenticalVertices |
-        aiProcess_GenSmoothNormals |
-        aiProcess_FlipUVs);
+🗂️ 3. Obsługa wielu modeli i instancji
+Możesz stworzyć std::vector<Model> i ładować wiele modeli w czasie rzeczywistym, np. z pliku JSON, listy lub katalogu.
 
-    if (!scene || !scene->HasMeshes()) {
-        std::cerr << "Assimp error: " << importer.GetErrorString() << "\n";
-        return mesh;
+✍️ Podsumowanie
+Twoja baza to świetna robota. Teraz pytanie:
+
+Który kierunek rozwijamy?
+
+🦴 Szkielet + animacje
+
+🎨 Ładowanie wielu tekstur/materialów
+
+🗂️ System wielu modeli/instancji
+
+🛠️ Inne: GUI, eksport sceny, fizyka, interakcja, PBR...
+
+Zróbmy to krok po kroku – wybierz, a ja Ci pomogę z konkretnym kodem.
+
+Powiedziałeś(-aś):
+Szkielet + animacje
+
+🎨 Ładowanie wielu tekstur/materialów
+Może najpierw tekstury ale fajnie by było jakby model machał ręką 
+ChatGPT powiedział:
+Świetnie – najpierw zróbmy tekstury/materialy, a potem szkielet + animację machającej ręki (czyli skinning + blend kości).
+
+🎨 [KROK 1] Ładowanie wielu tekstur z modelu (Assimp + OpenGL ES2)
+Assimp wspiera różne typy tekstur w aiMaterial. Najczęstsze:
+
+aiTextureType_DIFFUSE
+
+aiTextureType_SPECULAR
+
+aiTextureType_NORMALS
+
+aiTextureType_EMISSIVE
+
+🔧 Struktura Material z wieloma teksturami
+Dodaj do kodu:
+
+struct Material {
+    GLuint diffuse = 0;
+    GLuint specular = 0;
+    GLuint normal = 0;
+    GLuint emissive = 0;
+};
+Możesz dodać też hasNormalMap, shininess, itd.
+
+✅ Funkcja pomocnicza loadTextureFromMaterial
+GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type) {
+    if (mat->GetTextureCount(type) > 0) {
+        aiString path;
+        mat->GetTexture(type, 0, &path);
+
+        std::string fullPath = std::string("asserts/") + path.C_Str();
+        SDL_Surface* surface = IMG_Load(fullPath.c_str());
+        if (!surface) {
+            printf("Nie udalo sie zaladowac: %s\n", fullPath.c_str());
+            return 0;
+        }
+
+        GLuint texID;
+        glGenTextures(1, &texID);
+        glBindTexture(GL_TEXTURE_2D, texID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        GLenum format = (surface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        SDL_FreeSurface(surface);
+        return texID;
     }
-
-    const float scale = 0.02f;
-    unsigned int vertexOffset = 0;
-
-    for (unsigned int mIndex = 0; mIndex < scene->mNumMeshes; ++mIndex) {
-        const aiMesh* m = scene->mMeshes[mIndex];
-        int materialIndex = m->mMaterialIndex;
-
-        for (unsigned int i = 0; i < m->mNumVertices; ++i) {
-            Vertex v;
-
-            aiVector3D pos = m->mVertices[i];
-            v.x = pos.x * scale;
-            v.y = pos.y * scale;
-            v.z = pos.z * scale;
-
-            if (m->HasTextureCoords(0)) {
-                v.u = m->mTextureCoords[0][i].x;
-                v.v = m->mTextureCoords[0][i].y;
-            } else {
-                v.u = v.v = 0.0f;
-                std::cerr << "Warning: Missing UVs in mesh " << mIndex << "\n";
-            }
-
-            if (m->HasNormals()) {
-                aiVector3D norm = m->mNormals[i];
-                v.nx = norm.x;
-                v.ny = norm.y;
-                v.nz = norm.z;
-            } else {
-                v.nx = 0;
-                v.ny = 1;
-                v.nz = 0;
-                std::cerr << "Warning: Missing normals in mesh " << mIndex << "\n";
-            }
-
-            mesh.vertices.push_back(v);
-        }
-
-        for (unsigned int f = 0; f < m->mNumFaces; ++f) {
-            const aiFace& face = m->mFaces[f];
-            if (face.mNumIndices != 3) {
-                std::cerr << "Warning: Non-triangle face detected.\n";
-                continue;
-            }
-
-            for (unsigned int j = 0; j < 3; ++j) {
-                mesh.indices.push_back(vertexOffset + face.mIndices[j]);
-            }
-
-            mesh.materialIndices.push_back(materialIndex);
-        }
-
-        vertexOffset += m->mNumVertices;
-    }
-
-    // Wczytaj materiały
-    for (unsigned int i = 0; i < scene->mNumMaterials; ++i) {
-        aiMaterial* mat = scene->mMaterials[i];
-        Material mtl;
-
-        aiString texPath;
-
-        if (mat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
-            mtl.texPathDiffuse = texPath.C_Str();
-            materialsOut[mtl.texPathDiffuse] = mtl;
-        }
-
-        if (mat->GetTexture(aiTextureType_NORMALS, 0, &texPath) == AI_SUCCESS) {
-            mtl.texPathNormal = texPath.C_Str();
-            materialsOut[mtl.texPathNormal] = mtl;
-        }
-
-        mesh.materials.push_back(mtl);
-    }
-
-    return mesh;
+    return 0;
 }
-📌 Co dalej możesz dodać (opcjonalnie)
-Obsługę osadzonych tekstur (embedded textures scene->HasTextures())
+🧱 Wczytywanie tekstur do modelu
+W loadModel(...) przed glGenBuffers(...):
 
-Rekursyjne przetwarzanie aiNode, jeśli nie chcesz używać aiProcess_PreTransformVertices
+aiMaterial* material = scene->mMaterials[scene->mMeshes[0]->mMaterialIndex];
 
-Ładowanie innych kanałów tekstur: SPECULAR, EMISSIVE, HEIGHT, itd.
+Material mat;
+mat.diffuse  = loadTextureFromMaterial(material, aiTextureType_DIFFUSE);
+mat.specular = loadTextureFromMaterial(material, aiTextureType_SPECULAR);
+mat.normal   = loadTextureFromMaterial(material, aiTextureType_NORMALS);
+mat.emissive = loadTextureFromMaterial(material, aiTextureType_EMISSIVE);
 
-Obsługę aiBone i animacji szkieletowej
+newModel.material = mat;
+✍️ W shadrze dopisz uniform sampler2D specularMap; itd.
+A w fragment shader zrób coś prostego (na początek):
 
-Chcesz, żebym przygotował wersję, która rekurencyjnie przetwarza scenę i węzły (czyli bez PreTransformVertices)?
+uniform sampler2D tex;          // diffuse
+uniform sampler2D specularMap;
+uniform sampler2D normalMap;
+varying vec2 vUV;
 
-Chwiał ostatnia próba 
+void main() {
+    vec4 diffuseColor = texture2D(tex, vUV);
+    vec4 specularColor = texture2D(specularMap, vUV);
+    gl_FragColor = diffuseColor + 0.3 * specularColor; // uproszczenie
+}
+I w kodzie renderującym (np. render()):
+
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, material.diffuse);
+glUniform1i(glGetUniformLocation(program, "tex"), 0);
+
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_2D, material.specular);
+glUniform1i(glGetUniformLocation(program, "specularMap"), 1);
+
+// itd.
+🔜 Co potem?
+Jak to będzie działać (czyli pojawią się kolory/specular), to możemy wejść w:
+
+🦴 [KROK 2] Animacja kości (machająca ręka)
+Plan:
+
+Wczytaj kości z mesh->mBones[]
+
+Przypisz boneIndex + weight do każdego wierzchołka
+
+Wczytaj scene->mAnimations[]
+
+Oblicz matryce kości dla danego czasu
+
+Wyślij je do shadera (uniform array mat4 boneMatrices[MAX_BONES])
+
+W shaderze przemnóż pozycję/normale przez boneMatrices[boneIndex] * weight
+
+To już bardziej zaawansowane — ale do zrobienia krok po kroku.
+
+Czy chcesz, żebym przygotował pełną funkcję loadMaterial(...) i gotowy shader z obsługą 2-3 tekstur?
+
+Albo możemy od razu przejść do animacji kości, jeśli tekstury już śmigają.
+
+Powiedziałeś(-aś):
+pełną funkcję loadMaterial(...)
+ChatGPT powiedział:
+Świetnie! Oto pełna funkcja loadMaterial(...), która ładuje tekstury typu diffuse, specular, normal, emissive z materiału Assimp i tworzy obiekt Material.
+
+✅ Struktura Material
+Dodaj to do nagłówka/pliku przed Model:
+
+struct Material {
+    GLuint diffuse  = 0;
+    GLuint specular = 0;
+    GLuint normal   = 0;
+    GLuint emissive = 0;
+};
+✅ Funkcja loadTextureFromMaterial(...)
+GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type) {
+    if (mat->GetTextureCount(type) == 0) return 0;
+
+    aiString path;
+    if (mat->GetTexture(type, 0, &path) != AI_SUCCESS) return 0;
+
+    std::string fullPath = std::string("asserts/") + path.C_Str();
+    SDL_Surface* surface = IMG_Load(fullPath.c_str());
+    if (!surface) {
+        printf("Nie udało się załadować: %s\nSDL_image Error: %s\n", fullPath.c_str(), IMG_GetError());
+        return 0;
+    }
+
+    GLuint texID;
+    glGenTextures(1, &texID);
+    glBindTexture(GL_TEXTURE_2D, texID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    GLenum format = (surface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    SDL_FreeSurface(surface);
+    printf("Załadowano teksturę: %s\n", fullPath.c_str());
+    return texID;
+}
+✅ Funkcja loadMaterial(...)
+Material loadMaterial(const aiScene* scene, const aiMesh* mesh) {
+    Material mat;
+    if (!scene->HasMaterials()) return mat;
+
+    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+
+    mat.diffuse  = loadTextureFromMaterial(material, aiTextureType_DIFFUSE);
+    mat.specular = loadTextureFromMaterial(material, aiTextureType_SPECULAR);
+    mat.normal   = loadTextureFromMaterial(material, aiTextureType_NORMALS);
+    mat.emissive = loadTextureFromMaterial(material, aiTextureType_EMISSIVE);
+
+    return mat;
+}
+✅ Użycie w loadModel(...)
+W funkcji loadModel(...), po załadowaniu aiScene* scene i aiMesh* mesh:
+
+Zamień:
+
+newModel.textureID = loadTexture(texturePath);
+na:
+
+const aiMesh* mesh = scene->mMeshes[0];
+newModel.material = loadMaterial(scene, mesh);
+✅ Obsługa w render()
+W metodzie Model::render(...), przed rysowaniem:
+
+glActiveTexture(GL_TEXTURE0);
+glBindTexture(GL_TEXTURE_2D, material.diffuse);
+glUniform1i(glGetUniformLocation(program, "tex"), 0);
+
+glActiveTexture(GL_TEXTURE1);
+glBindTexture(GL_TEXTURE_2D, material.specular);
+glUniform1i(glGetUniformLocation(program, "specularMap"), 1);
+
+glActiveTexture(GL_TEXTURE2);
+glBindTexture(GL_TEXTURE_2D, material.normal);
+glUniform1i(glGetUniformLocation(program, "normalMap"), 2);
+
+glActiveTexture(GL_TEXTURE3);
+glBindTexture(GL_TEXTURE_2D, material.emissive);
+glUniform1i(glGetUniformLocation(program, "emissiveMap"), 3);
+✅ Shader – fragment shader (fs)
+Zaktualizuj fragment shader:
+
+precision mediump float;
+
+uniform sampler2D tex;
+uniform sampler2D specularMap;
+uniform sampler2D normalMap;
+uniform sampler2D emissiveMap;
+
+varying vec2 vUV;
+
+void main() {
+    vec4 diffuseColor  = texture2D(tex, vUV);
+    vec4 specularColor = texture2D(specularMap, vUV);
+    vec4 normalColor   = texture2D(normalMap, vUV);
+    vec4 emissiveColor = texture2D(emissiveMap, vUV);
+
+    vec4 finalColor = diffuseColor + 0.3 * specularColor + 0.1 * emissiveColor;
+    gl_FragColor = finalColor;
+}
+(Na tym etapie to tylko wizualne dodanie koloru – nie fizycznie oświetlenie specular/normal, ale to możemy zrobić później.)
+
+✅ Gotowe!
+Twój silnik teraz automatycznie ładuje:
+
+Diffuse
+
+Specular
+
+Normal mapy
+
+Emissive
+
+Z materiału przypisanego w pliku .fbx, .obj itd.
+
+🔜 Co dalej?
+Teraz możesz:
+
+Dodać shader Phong / PBR – żeby specular i normal map działały jak należy.
+
+Przejść do animacji szkieletowej (aiBone, skinning) – jak planowaliśmy.
+
+Chcesz teraz kod do machającej ręki z użyciem kości i skinningu w shaderze?
+
+
+Chwila 
 
 
 
 
 Nie wybrano plikuNie wybrano pliku
 ChatGPT może popełniać błędy. Sprawdź ważne informacje. Zobacz Preferencje dotyczące plików cookie.
-
-bool Model::LoadModel(const std::string& filePath)
-{
-    Assimp::Importer importer;
-
-    const aiScene* pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
+* pScene = importer.ReadFile(filePath, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices |
         aiProcess_ConvertToLeftHanded | aiProcess_PreTransformVertices);
 
     if (pScene == nullptr)
