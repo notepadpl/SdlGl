@@ -305,26 +305,19 @@ void main(){
 const char* fs = R"(
 precision mediump float;
 
-uniform sampler2D tex;          // diffuse map
-uniform sampler2D specularMap;  // specular map
-uniform sampler2D emissiveMap;  // emissive map
-
+uniform sampler2D tex;
 varying vec2 vUV;
 varying vec3 vNormal;
 
 void main() {
     vec3 lightDir = normalize(vec3(0.0, 0.0, 1.0));
-    float diffuseFactor = max(dot(vNormal, lightDir), 0.0);
+    float diffuseFactor = max(dot(normalize(vNormal), lightDir), 0.0);
 
     vec3 diffuseColor = texture2D(tex, vUV).rgb;
-    vec3 specularColor = texture2D(specularMap, vUV).rgb;
-    vec3 emissiveColor = texture2D(emissiveMap, vUV).rgb;
 
-    // prosty model Phonga
-    vec3 finalColor = diffuseColor * diffuseFactor + specularColor + emissiveColor;
-
-    gl_FragColor = vec4(finalColor, 1.0);
+    gl_FragColor = vec4(diffuseColor * diffuseFactor, 1.0);
 }
+
 )";
 
 // --- Główny kod programu (poprawiony) ---
