@@ -96,9 +96,12 @@ precision mediump float;
 
 uniform sampler2D tex;
 varying vec2 vUV;
+varying vec3 vNormal;
 
 void main() {
-    vec3 color = texture2D(tex, vUV).rgb;
+    vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+    vec3 color = texture2D(tex, vUV).rgb * diff;
     gl_FragColor = vec4(color, 1.0);
 }
 )";
