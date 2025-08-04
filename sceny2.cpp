@@ -278,6 +278,29 @@ Model loadModel(const char* meshPath, const std::string& textureDirectory) {
 }
 
 // --- Fragment shader z poprawionym łączeniem tekstur ---
+// --- Shader code (poprawiona, aby używać wszystkich tekstur) ---
+const char* vs = R"(
+attribute vec3 aPos;
+attribute vec3 aNormal;
+attribute vec2 aUV;
+
+varying vec3 vNormal;
+varying vec2 vUV;
+
+uniform float rotX, rotY;
+
+void main(){
+    float cx = cos(rotX), sx = sin(rotX);
+    float cy = cos(rotY), sy = sin(rotY);
+    mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
+    mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
+    vec3 p = Ry * Rx * aPos;
+    gl_Position = vec4(p * 0.1, 1.0);
+    vNormal = normalize(Ry * Rx * aNormal);
+    vUV = aUV;
+}
+)";
+
 const char* fs = R"(
 precision mediump float;
 
