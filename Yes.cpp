@@ -119,6 +119,8 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
     if (mat->GetTextureCount(type) > 0) {
         aiString path;
         mat->GetTexture(type, 0, &path);
+        printf("Assimp path: %s\n", path.C_Str());
+        
         std::string fullPath = directory + "/" + std::string(path.C_Str());
 
         SDL_Surface* surface = IMG_Load(fullPath.c_str());
