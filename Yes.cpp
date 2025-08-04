@@ -130,6 +130,9 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
             printf("Failed to load texture: %s\n", fullPath.c_str());
             return 0;
         }
+        else{
+            printf("load texture: %s\n", fullPath.c_str());
+        }
 
         GLuint texID;
         glGenTextures(1, &texID);
