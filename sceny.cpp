@@ -119,7 +119,7 @@ Material loadMaterial(const aiScene* scene, const aiMesh* mesh) {
     mat.specular = loadTextureFromMaterial(material, aiTextureType_SPECULAR);
     mat.normal   = loadTextureFromMaterial(material, aiTextureType_NORMALS);
     mat.emissive = loadTextureFromMaterial(material, aiTextureType_EMISSIVE);
-mat.diffuse = loadTexture("asserts/Hair.png");
+mat.diffuse = loadTextureFromMaterial("asserts/Hair.png");
     
     return mat;
 }
