@@ -33,7 +33,7 @@ class Model {
 public:
     GLuint vbo, ibo, textureID;
     size_t indexCount;
-
+Material material;
     // Metoda renderująca model
     void render(GLuint program, float rotX, float rotY) {
         glUseProgram(program);
@@ -223,9 +223,23 @@ Model loadModel(const char* meshPath, const char* texturePath) {
     }
 
    // newModel.textureID = loadTexture(texturePath);
+Assimp::Importer importer;
+const aiScene* scene = importer.ReadFile(
+    meshPath, 
+    aiProcess_Triangulate | 
+    aiProcess_JoinIdenticalVertices | 
+    aiProcess_GenNormals | 
+    aiProcess_CalcTangentSpace
+);
+
+if (!scene || !scene->HasMeshes()) {
+    printf("Nie udało się załadować modelu: %s\n", importer.GetErrorString());
+    return Model(); // lub pusty Model
+}
+
 const aiMesh* mesh = scene->mMeshes[0];
 newModel.material = loadMaterial(scene, mesh);
-    
+
     glGenBuffers(1, &newModel.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, newModel.vbo);
     glBufferData(GL_ARRAY_BUFFER, meshData.vertices.size() * sizeof(float), meshData.vertices.data(), GL_STATIC_DRAW);
@@ -336,7 +350,7 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
-glBindTexture(GL_TEXTURE_2D, material.diffuse);
+glBindTexture(GL_TEXTURE_2D, this->material.diffuse); // lub po prostu this->material...
 glUniform1i(glGetUniformLocation(program, "tex"), 0);
 
 glActiveTexture(GL_TEXTURE1);
