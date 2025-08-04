@@ -1,0 +1,304 @@
+🔨 Zróbmy to porządnie:
+Poniżej masz szkielet nowej wersji klasy Model i Mesh, gotowy do rozbudowy.
+
+🔷 Material.h
+cpp
+Skopiuj kod
+#pragma once
+#include <GLES2/gl2.h>
+
+struct Material {
+    GLuint diffuse = 0;
+    GLuint specular = 0;
+    GLuint normal = 0;
+    GLuint emissive = 0;
+
+    void bind(GLuint program) const;
+    void cleanup();
+};
+🔷 Material.cpp
+cpp
+Skopiuj kod
+#include "Material.h"
+
+void Material::bind(GLuint program) const {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, diffuse);
+    glUniform1i(glGetUniformLocation(program, "tex"), 0);
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, specular);
+    glUniform1i(glGetUniformLocation(program, "specularMap"), 1);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, normal);
+    glUniform1i(glGetUniformLocation(program, "normalMap"), 2);
+
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, emissive);
+    glUniform1i(glGetUniformLocation(program, "emissiveMap"), 3);
+}
+
+void Material::cleanup() {
+    if (diffuse) glDeleteTextures(1, &diffuse);
+    if (specular) glDeleteTextures(1, &specular);
+    if (normal) glDeleteTextures(1, &normal);
+    if (emissive) glDeleteTextures(1, &emissive);
+}
+🔷 Mesh.h
+cpp
+Skopiuj kod
+#pragma once
+#include "Material.h"
+#include <GLES2/gl2.h>
+
+class Mesh {
+public:
+    GLuint vbo = 0, ibo = 0;
+    size_t indexCount = 0;
+    Material material;
+
+    void render(GLuint program);
+    void cleanup();
+};
+🔷 Mesh.cpp
+cpp
+Skopiuj kod
+#include "Mesh.h"
+
+void Mesh::render(GLuint program) {
+    material.bind(program);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+    GLint posLoc = glGetAttribLocation(program, "aPos");
+    GLint normalLoc = glGetAttribLocation(program, "aNormal");
+    GLint uvLoc = glGetAttribLocation(program, "aUV");
+
+    glEnableVertexAttribArray(posLoc);
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)0);
+
+    glEnableVertexAttribArray(normalLoc);
+    glVertexAttribPointer(normalLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 3));
+
+    glEnableVertexAttribArray(uvLoc);
+    glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
+
+    glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, (void*)0);
+}
+
+void Mesh::cleanup() {
+    glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ibo);
+    material.cleanup();
+}
+🔷 Model.h
+cpp
+Skopiuj kod
+#pragma once
+#include "Mesh.h"
+#include <vector>
+#include <string>
+
+class Model {
+public:
+    std::vector<Mesh> meshes;
+
+    Model() = default;
+    Model(const std::string& modelPath, const std::string& textureDir); // Konstruktor ładowania
+
+    void load(const std::string& modelPath, const std::string& textureDir);
+    void render(GLuint program, float rotX, float rotY);
+    void cleanup();
+};
+🔷 Model.cpp
+Tutaj zrobimy pętlę for each aiMesh, dodamy Mesh z materiałem.
+
+cpp
+Skopiuj kod
+#include "Model.h"
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <SDL_image.h>
+#include <iostream>
+
+// Pomocnicze funkcje ładowania tekstur (loadTextureFromMaterial itd.) tu umieść
+
+Model::Model(const std::string& modelPath, const std::string& textureDir) {
+    load(modelPath, textureDir);
+}
+
+void Model::load(const std::string& path, const std::string& textureDir) {
+    Assimp::Importer importer;
+    const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_JoinIdenticalVertices | aiProcess_GenNormals | aiProcess_CalcTangentSpace);
+
+    if (!scene || !scene->HasMeshes()) {
+        std::cerr << "Nie udalo sie zaladowac modelu: " << importer.GetErrorString() << "\n";
+        return;
+    }
+
+    for (unsigned int i = 0; i < scene->mNumMeshes; ++i) {
+        const aiMesh* mesh = scene->mMeshes[i];
+        Mesh newMesh;
+
+        std::vector<float> vertices;
+        std::vector<unsigned int> indices;
+
+        for (unsigned int j = 0; j < mesh->mNumVertices; ++j) {
+            vertices.push_back(mesh->mVertices[j].x);
+            vertices.push_back(mesh->mVertices[j].y);
+            vertices.push_back(mesh->mVertices[j].z);
+
+            if (mesh->HasNormals()) {
+                vertices.push_back(mesh->mNormals[j].x);
+                vertices.push_back(mesh->mNormals[j].y);
+                vertices.push_back(mesh->mNormals[j].z);
+            } else {
+                vertices.insert(vertices.end(), {0.0f, 0.0f, 0.0f});
+            }
+
+            if (mesh->HasTextureCoords(0)) {
+                vertices.push_back(mesh->mTextureCoords[0][j].x);
+                vertices.push_back(mesh->mTextureCoords[0][j].y);
+            } else {
+                vertices.insert(vertices.end(), {0.0f, 0.0f});
+            }
+        }
+
+        for (unsigned int j = 0; j < mesh->mNumFaces; ++j) {
+            const aiFace& face = mesh->mFaces[j];
+            for (unsigned int k = 0; k < face.mNumIndices; ++k) {
+                indices.push_back(face.mIndices[k]);
+            }
+        }
+
+        glGenBuffers(1, &newMesh.vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, newMesh.vbo);
+        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+        glGenBuffers(1, &newMesh.ibo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, newMesh.ibo);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+        newMesh.indexCount = indices.size();
+
+        newMesh.material = loadMaterial(scene, mesh, textureDir);
+
+        meshes.push_back(newMesh);
+    }
+}
+
+void Model::render(GLuint program, float rotX, float rotY) {
+    glUseProgram(program);
+
+    GLint rotXLoc = glGetUniformLocation(program, "rotX");
+    GLint rotYLoc = glGetUniformLocation(program, "rotY");
+    glUniform1f(rotXLoc, rotX);
+    glUniform1f(rotYLoc, rotY);
+
+    for (auto& mesh : meshes) {
+        mesh.render(program);
+    }
+}
+
+void Model::cleanup() {
+    for (auto& mesh : meshes) {
+        mesh.cleanup();
+    }
+    meshes.clear();
+}
+🧩 Potem możesz:
+dodać Animator do modelu
+
+ładować modele z configów/JSON
+
+dodać LOD, instancing itd.
+
+Chcesz, żebym Ci ten cały kod spakował do zipa z małym przykładem i dał do pobrania, czy wolisz dalej sam to kleić krok po kroku?
+
+
+Powiedziałeś(-aś):
+A dasz radę spakować ten kod do zipa?
+
+ChatGPT powiedział:
+Chciałbym bardzo przygotować gotowy ZIP, ale niestety z obecnym interfejsem nie jestem w stanie wygenerować i przesłać fizycznego archiwum. Za to bez problemu mogę Tobie wygenerować strukturę projektową i pliki kodu razem z krótką instrukcją, które możesz łatwo zapisać:
+
+📂 Struktura projektu
+mathematica
+Skopiuj kod
+project/
+├── src/
+│   ├── main.cpp
+│   ├── Model.h
+│   ├── Model.cpp
+│   ├── Mesh.h
+│   ├── Mesh.cpp
+│   ├── Material.h
+│   ├── Material.cpp
+│   ├── TextureLoader.h
+│   └── TextureLoader.cpp
+├── assets/
+│   └── (modele i foldery z teksturami, np. Harpy/, Knight/)
+├── shaders/
+│   ├── vertex.glsl
+│   └── fragment.glsl
+└── CMakeLists.txt
+✏️ Przykładowe pliki
+Model.h / Model.cpp — klasa Model, ładująca wiele meshów.
+
+Mesh.h / Mesh.cpp — pojedynczy mesh z VBO/IBO i Material.
+
+Material.h / Material.cpp — zarządza teksturami (bind, cleanup).
+
+TextureLoader.h / .cpp — funkcje loadTextureFromMaterial i loadTextureFromFile.
+
+main.cpp — inicjalizacja SDL, OpenGL, ładowanie modeli, pętla renderująca.
+
+vertex.glsl oraz fragment.glsl — Twoje shadery z samplowaniem “tex” i UV.
+
+🛠 Instrukcja ręcznego utworzenia ZIP:
+Utwórz katalog project/ i podkatalogi zgodnie ze strukturą.
+
+Skopiuj kod (z mojej poprzedniej wiadomości — pełna wersja Model/Mesh/Material plus loader).
+
+Umieść pliki shaderów w shaders/.
+
+Skonfiguruj CMakeLists.txt lub użyj emcc, dodając flagę --preload-file assets.
+
+Skompiluj projekt lokalnie lub przez Emscripten.
+
+Uruchom — każdy model ładuje się teraz automatycznie przez Model::load().
+
+✅ Co dalej?
+Mogę wygenerować pełne pliki w jednej wiadomości, które możesz skopiować do plików.
+
+Mogę pomóc skonfigurować CMakeLists.txt lub skrypt budujący.
+
+Mogę dopisać jeszcze loader tekstur lub materiałów.
+
+Chcesz, żebym przygotował całość kodu w jednej wiadomości – gotowy do skopiowania?
+
+
+Powiedziałeś(-aś):
+Ok to będę kleił 
+
+ChatGPT powiedział:
+Super 💪 — to najlepszy sposób, żeby dobrze zrozumieć cały pipeline od modeli po shadery. Jak będziesz miał już strukturę albo coś zacznie się sypać (a pewnie się sypnie 😄), po prostu daj znać:
+
+sprawdzę shader,
+
+popatrzymy na ścieżki do tekstur,
+
+albo pomogę z emcc / emscripten_set_main_loop.
+
+Powodzenia z klejeniem — jak coś, jestem tu! 🛠️🧠
+
+
+
+Uzyskuj bardziej inteligentne odpowiedzi, przesyłaj pliki oraz obrazy i wiele więcej.
+
+Zaloguj się
+
+Zarejestruj się za darmo
