@@ -305,18 +305,25 @@ void main(){
 const char* fs = R"(
 precision mediump float;
 
-uniform sampler2D tex;
+uniform sampler2D tex;          // diffuse map
+uniform sampler2D specularMap;  // specular map
+uniform sampler2D emissiveMap;  // emissive map
+
 varying vec2 vUV;
+varying vec3 vNormal;
 
 void main() {
-    vec4 color = texture2D(tex, vUV);
+    vec3 lightDir = normalize(vec3(0.0, 0.0, 1.0));
+    float diffuseFactor = max(dot(vNormal, lightDir), 0.0);
 
-    // Debug: jeśli kolor czarny, pokaż UV jako kolor
-    if (color.rgb == vec3(0.0)) {
-        gl_FragColor = vec4(vUV, 1.0, 1.0);
-    } else {
-        gl_FragColor = color;
-    }
+    vec3 diffuseColor = texture2D(tex, vUV).rgb;
+    vec3 specularColor = texture2D(specularMap, vUV).rgb;
+    vec3 emissiveColor = texture2D(emissiveMap, vUV).rgb;
+
+    // prosty model Phonga
+    vec3 finalColor = diffuseColor * diffuseFactor + specularColor + emissiveColor;
+
+    gl_FragColor = vec4(finalColor, 1.0);
 }
 )";
 
