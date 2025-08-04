@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmp9_k3fnwv.js
+// include: /tmp/tmpz3jghdgt.js
 
   if (!Module['expectedDataFileDownloads']) {
     Module['expectedDataFileDownloads'] = 0;
@@ -216,25 +216,25 @@ Module['FS_createPath']("/", "asserts", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/asserts/Belt.png", "start": 0, "end": 132076}, {"filename": "/asserts/Eye.png", "start": 132076, "end": 320448}, {"filename": "/asserts/Eyelashes.png", "start": 320448, "end": 420017}, {"filename": "/asserts/Face.png", "start": 420017, "end": 611138}, {"filename": "/asserts/Gloves.png", "start": 611138, "end": 740043}, {"filename": "/asserts/Guard.png", "start": 740043, "end": 851131}, {"filename": "/asserts/Hair.png", "start": 851131, "end": 1762140}, {"filename": "/asserts/Harpy.fbx", "start": 1762140, "end": 3176776}, {"filename": "/asserts/Inner.png", "start": 3176776, "end": 3345299}, {"filename": "/asserts/Jeans.png", "start": 3345299, "end": 3440886}, {"filename": "/asserts/Shoes.png", "start": 3440886, "end": 3568668}, {"filename": "/asserts/Shoes_nor.png", "start": 3568668, "end": 5852474}, {"filename": "/asserts/Skin.png", "start": 5852474, "end": 6003459}, {"filename": "/asserts/Skin_nor.png", "start": 6003459, "end": 7884855}, {"filename": "/asserts/T-Shirt.png", "start": 7884855, "end": 7989206}, {"filename": "/asserts/T-shirt_nor.png", "start": 7989206, "end": 9533528}, {"filename": "/asserts/Teeth.png", "start": 9533528, "end": 9630331}, {"filename": "/asserts/Tongue.png", "start": 9630331, "end": 9721403}, {"filename": "/asserts/cube.obj", "start": 9721403, "end": 9721889}, {"filename": "/asserts/tmp", "start": 9721889, "end": 9721890}], "remote_package_size": 9721890});
+    loadPackage({"files": [{"filename": "/asserts/Belt.png", "start": 0, "end": 132076}, {"filename": "/asserts/Eye.png", "start": 132076, "end": 320448}, {"filename": "/asserts/Eyelashes.png", "start": 320448, "end": 420017}, {"filename": "/asserts/Face.png", "start": 420017, "end": 611138}, {"filename": "/asserts/Gloves.png", "start": 611138, "end": 740043}, {"filename": "/asserts/Guard.png", "start": 740043, "end": 851131}, {"filename": "/asserts/Hair.png", "start": 851131, "end": 1762140}, {"filename": "/asserts/Harpy.fbx", "start": 1762140, "end": 3176776}, {"filename": "/asserts/Inner.png", "start": 3176776, "end": 3345299}, {"filename": "/asserts/Jeans.png", "start": 3345299, "end": 3440886}, {"filename": "/asserts/Shoes.png", "start": 3440886, "end": 3568668}, {"filename": "/asserts/Skin.png", "start": 3568668, "end": 3719653}, {"filename": "/asserts/Skin_nor.png", "start": 3719653, "end": 5601049}, {"filename": "/asserts/T-Shirt.png", "start": 5601049, "end": 5705400}, {"filename": "/asserts/T-shirt_nor.png", "start": 5705400, "end": 7249722}, {"filename": "/asserts/Teeth.png", "start": 7249722, "end": 7346525}, {"filename": "/asserts/Tongue.png", "start": 7346525, "end": 7437597}, {"filename": "/asserts/cube.obj", "start": 7437597, "end": 7438083}, {"filename": "/asserts/tmp", "start": 7438083, "end": 7438084}], "remote_package_size": 7438084});
 
   })();
 
-// end include: /tmp/tmp9_k3fnwv.js
-// include: /tmp/tmpv_9y3rxj.js
+// end include: /tmp/tmpz3jghdgt.js
+// include: /tmp/tmpo0hczg8h.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmpv_9y3rxj.js
-// include: /tmp/tmp2j0n1ovz.js
+  // end include: /tmp/tmpo0hczg8h.js
+// include: /tmp/tmp1l__i5my.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmp2j0n1ovz.js
+  // end include: /tmp/tmp1l__i5my.js
 
 
 // Sometimes an existing Module object exists with properties
