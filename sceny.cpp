@@ -362,7 +362,7 @@ glBindTexture(GL_TEXTURE_2D, harpyModel.material.normal);
 glUniform1i(glGetUniformLocation(program, "normalMap"), 2);
 
 glActiveTexture(GL_TEXTURE3);
-glBindTexture(GL_TEXTURE_2D, material.emissive);
+glBindTexture(GL_TEXTURE_2D, harpyModel.material.emissive);
 glUniform1i(glGetUniformLocation(program, "emissiveMap"), 3);
 
     // --- Renderowanie modelu za pomocą nowej metody ---
