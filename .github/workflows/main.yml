@@ -52,9 +52,8 @@ jobs:
       - name: Compile C++ to WebAssembly with Assimp
         run: |
           source ./emsdk/emsdk_env.sh
-          ls asserts > tekstury.txt
           mkdir -p dist
-          em++ sceny.cpp \
+          em++ sceny2.cpp \
             -Iassimp/include \
             -Iassimp/code \
             -Lassimp/lib \
