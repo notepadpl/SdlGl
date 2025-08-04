@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpauinmav3.js
+// include: /tmp/tmp017ka4v1.js
 
   if (!Module['expectedDataFileDownloads']) {
     Module['expectedDataFileDownloads'] = 0;
@@ -216,25 +216,25 @@ Module['FS_createPath']("/", "asserts", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/asserts/Belt.png", "start": 0, "end": 132076}, {"filename": "/asserts/Eye.png", "start": 132076, "end": 320448}, {"filename": "/asserts/Eyelashes.png", "start": 320448, "end": 420017}, {"filename": "/asserts/Face.png", "start": 420017, "end": 611138}, {"filename": "/asserts/Gloves.png", "start": 611138, "end": 740043}, {"filename": "/asserts/Guard.png", "start": 740043, "end": 851131}, {"filename": "/asserts/Hair.png", "start": 851131, "end": 1762140}, {"filename": "/asserts/Hair_nor.png", "start": 1762140, "end": 3042255}, {"filename": "/asserts/Harpy.fbx", "start": 3042255, "end": 4456891}, {"filename": "/asserts/Inner.png", "start": 4456891, "end": 4625414}, {"filename": "/asserts/Inner_nor.png", "start": 4625414, "end": 5999151}, {"filename": "/asserts/Jeans.png", "start": 5999151, "end": 6094738}, {"filename": "/asserts/Jeans_nor.png", "start": 6094738, "end": 7143770}, {"filename": "/asserts/Ocean_Mask_2K.png", "start": 7143770, "end": 7812425}, {"filename": "/asserts/Shoes.png", "start": 7812425, "end": 7940207}, {"filename": "/asserts/Shoes_nor.png", "start": 7940207, "end": 10224013}, {"filename": "/asserts/Skin.png", "start": 10224013, "end": 10374998}, {"filename": "/asserts/Skin_nor.png", "start": 10374998, "end": 12256394}, {"filename": "/asserts/T-Shirt.png", "start": 12256394, "end": 12360745}, {"filename": "/asserts/T-shirt_nor.png", "start": 12360745, "end": 13905067}, {"filename": "/asserts/Teeth.png", "start": 13905067, "end": 14001870}, {"filename": "/asserts/Tongue.png", "start": 14001870, "end": 14092942}, {"filename": "/asserts/cube.obj", "start": 14092942, "end": 14093428}, {"filename": "/asserts/tmp", "start": 14093428, "end": 14093429}], "remote_package_size": 14093429});
+    loadPackage({"files": [{"filename": "/asserts/Belt.png", "start": 0, "end": 132076}, {"filename": "/asserts/Eye.png", "start": 132076, "end": 320448}, {"filename": "/asserts/Eyelashes.png", "start": 320448, "end": 420017}, {"filename": "/asserts/Face.png", "start": 420017, "end": 611138}, {"filename": "/asserts/Gloves.png", "start": 611138, "end": 740043}, {"filename": "/asserts/Guard.png", "start": 740043, "end": 851131}, {"filename": "/asserts/Hair.png", "start": 851131, "end": 1762140}, {"filename": "/asserts/Harpy.fbx", "start": 1762140, "end": 3176776}, {"filename": "/asserts/Inner.png", "start": 3176776, "end": 3345299}, {"filename": "/asserts/Inner_nor.png", "start": 3345299, "end": 4719036}, {"filename": "/asserts/Jeans.png", "start": 4719036, "end": 4814623}, {"filename": "/asserts/Jeans_nor.png", "start": 4814623, "end": 5863655}, {"filename": "/asserts/Ocean_Mask_2K.png", "start": 5863655, "end": 6532310}, {"filename": "/asserts/Shoes.png", "start": 6532310, "end": 6660092}, {"filename": "/asserts/Shoes_nor.png", "start": 6660092, "end": 8943898}, {"filename": "/asserts/Skin.png", "start": 8943898, "end": 9094883}, {"filename": "/asserts/Skin_nor.png", "start": 9094883, "end": 10976279}, {"filename": "/asserts/T-Shirt.png", "start": 10976279, "end": 11080630}, {"filename": "/asserts/T-shirt_nor.png", "start": 11080630, "end": 12624952}, {"filename": "/asserts/Teeth.png", "start": 12624952, "end": 12721755}, {"filename": "/asserts/Tongue.png", "start": 12721755, "end": 12812827}, {"filename": "/asserts/cube.obj", "start": 12812827, "end": 12813313}, {"filename": "/asserts/tmp", "start": 12813313, "end": 12813314}], "remote_package_size": 12813314});
 
   })();
 
-// end include: /tmp/tmpauinmav3.js
-// include: /tmp/tmpc75_5jx4.js
+// end include: /tmp/tmp017ka4v1.js
+// include: /tmp/tmpi7ga7yyl.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmpc75_5jx4.js
-// include: /tmp/tmp3c84vryz.js
+  // end include: /tmp/tmpi7ga7yyl.js
+// include: /tmp/tmp57y98482.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmp3c84vryz.js
+  // end include: /tmp/tmp57y98482.js
 
 
 // Sometimes an existing Module object exists with properties
