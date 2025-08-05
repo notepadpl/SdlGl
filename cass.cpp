@@ -204,6 +204,7 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
     return 0;
 }
 
+// W funkcji loadMaterial
 Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::string& directory) {
     Material mat;
     if (!scene->HasMaterials()) {
@@ -212,6 +213,12 @@ Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::strin
     }
 
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    std::cout << "Assimp znalazl material dla mesha o indeksie: " << mesh->mMaterialIndex << std::endl;
+
+    // To wypisze liczbę tekstur dyfuzyjnych. Jeśli jest 0, to jest problem.
+    std::cout << "Liczba tekstur dyfuzyjnych: " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
+
+    // Przekazanie do funkcji ladowania tekstur
     mat.diffuse = loadTextureFromMaterial(material, aiTextureType_DIFFUSE, directory);
     mat.specular = loadTextureFromMaterial(material, aiTextureType_SPECULAR, directory);
     mat.normal = loadTextureFromMaterial(material, aiTextureType_NORMALS, directory);
