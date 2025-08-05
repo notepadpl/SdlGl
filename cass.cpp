@@ -215,18 +215,18 @@ Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::strin
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
     std::cout << "Assimp znalazl material dla mesha o indeksie: " << mesh->mMaterialIndex << std::endl;
 
-    // To wypisze liczbę tekstur dyfuzyjnych. Jeśli jest 0, to jest problem.
-    std::cout << "Liczba tekstur dyfuzyjnych: " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
+    // Wypisuj liczbę tekstur dla wszystkich głównych typów
+    std::cout << "  - Tekstur dyfuzyjnych (DIFFUSE): " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
+    std::cout << "  - Tekstur normalnych (NORMALS): " << material->GetTextureCount(aiTextureType_NORMALS) << std::endl;
+    std::cout << "  - Tekstur spekularnych (SPECULAR): " << material->GetTextureCount(aiTextureType_SPECULAR) << std::endl;
+    std::cout << "  - Tekstur emisyjnych (EMISSIVE): " << material->GetTextureCount(aiTextureType_EMISSIVE) << std::endl;
 
-    // Przekazanie do funkcji ladowania tekstur
+    // Tutaj nadal próbujemy załadować tylko dyfuzyjną
     mat.diffuse = loadTextureFromMaterial(material, aiTextureType_DIFFUSE, directory);
-    mat.specular = loadTextureFromMaterial(material, aiTextureType_SPECULAR, directory);
-    mat.normal = loadTextureFromMaterial(material, aiTextureType_NORMALS, directory);
-    mat.emissive = loadTextureFromMaterial(material, aiTextureType_EMISSIVE, directory);
+    // ... (reszta kodu ladowania materialu)
 
     return mat;
 }
-
 // --- Model (implementacja metod) ---
 void Model::load(const std::string& path, const std::string& textureDir) {
     Assimp::Importer importer;
