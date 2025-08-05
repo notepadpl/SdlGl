@@ -188,8 +188,11 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         GLenum format = (surface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-        glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
-        glGenerateMipmap(GL_TEXTURE_2D);
+        //glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+        
+       // glGenerateMipmap(GL_TEXTURE_2D);
 
         SDL_FreeSurface(surface);
         return texID;
