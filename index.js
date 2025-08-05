@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmp1_mj0jlz.js
+// include: /tmp/tmpjvgcexof.js
 
   if (!Module['expectedDataFileDownloads']) {
     Module['expectedDataFileDownloads'] = 0;
@@ -217,25 +217,25 @@ Module['FS_createPath']("/asserts", "Harpy", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/asserts/Belt.png", "start": 0, "end": 132076}, {"filename": "/asserts/Eye.png", "start": 132076, "end": 320448}, {"filename": "/asserts/Eyelashes.png", "start": 320448, "end": 420017}, {"filename": "/asserts/Face.png", "start": 420017, "end": 611138}, {"filename": "/asserts/Gloves.png", "start": 611138, "end": 740043}, {"filename": "/asserts/Guard.png", "start": 740043, "end": 851131}, {"filename": "/asserts/Hair.png", "start": 851131, "end": 1762140}, {"filename": "/asserts/Harpy.fbx", "start": 1762140, "end": 3176776}, {"filename": "/asserts/Harpy/Tmp", "start": 3176776, "end": 3176777}, {"filename": "/asserts/Inner.png", "start": 3176777, "end": 3345300}, {"filename": "/asserts/Jeans.png", "start": 3345300, "end": 3440887}, {"filename": "/asserts/Shoes.png", "start": 3440887, "end": 3568669}, {"filename": "/asserts/Skin.png", "start": 3568669, "end": 3719654}, {"filename": "/asserts/T-Shirt.png", "start": 3719654, "end": 3824005}, {"filename": "/asserts/Teeth.png", "start": 3824005, "end": 3920808}, {"filename": "/asserts/Tongue.png", "start": 3920808, "end": 4011880}], "remote_package_size": 4011880});
+    loadPackage({"files": [{"filename": "/asserts/Belt.png", "start": 0, "end": 132076}, {"filename": "/asserts/Eye.png", "start": 132076, "end": 320448}, {"filename": "/asserts/Eyelashes.png", "start": 320448, "end": 420017}, {"filename": "/asserts/Face.png", "start": 420017, "end": 611138}, {"filename": "/asserts/Gloves.png", "start": 611138, "end": 740043}, {"filename": "/asserts/Guard.png", "start": 740043, "end": 851131}, {"filename": "/asserts/Hair.png", "start": 851131, "end": 1762140}, {"filename": "/asserts/Harpy.fbx", "start": 1762140, "end": 3176776}, {"filename": "/asserts/Harpy/Face.png", "start": 3176776, "end": 3367897}, {"filename": "/asserts/Harpy/Gloves.png", "start": 3367897, "end": 3496802}, {"filename": "/asserts/Harpy/Hair.png", "start": 3496802, "end": 4407811}, {"filename": "/asserts/Harpy/Skin.png", "start": 4407811, "end": 4558796}, {"filename": "/asserts/Harpy/Tmp", "start": 4558796, "end": 4558797}, {"filename": "/asserts/Inner.png", "start": 4558797, "end": 4727320}, {"filename": "/asserts/Jeans.png", "start": 4727320, "end": 4822907}, {"filename": "/asserts/Shoes.png", "start": 4822907, "end": 4950689}, {"filename": "/asserts/Skin.png", "start": 4950689, "end": 5101674}, {"filename": "/asserts/T-Shirt.png", "start": 5101674, "end": 5206025}, {"filename": "/asserts/Teeth.png", "start": 5206025, "end": 5302828}, {"filename": "/asserts/Tongue.png", "start": 5302828, "end": 5393900}], "remote_package_size": 5393900});
 
   })();
 
-// end include: /tmp/tmp1_mj0jlz.js
-// include: /tmp/tmpiiwuch_b.js
+// end include: /tmp/tmpjvgcexof.js
+// include: /tmp/tmp65k6pq3_.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmpiiwuch_b.js
-// include: /tmp/tmpioq3gzo2.js
+  // end include: /tmp/tmp65k6pq3_.js
+// include: /tmp/tmp2og4a84d.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmpioq3gzo2.js
+  // end include: /tmp/tmp2og4a84d.js
 
 
 // Sometimes an existing Module object exists with properties
