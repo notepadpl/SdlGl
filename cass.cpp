@@ -170,8 +170,12 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
     if (mat->GetTextureCount(type) > 0) {
         aiString path;
         mat->GetTexture(type, 0, &path);
+        std::string fullPath = directory + "/Hair.png"; // Wczytujemy "na sztywno"
         
-        std::string fullPath = directory + "/" + std::string(path.C_Str());
+        std::cout << "Proba zaladowania tekstury: " << fullPath << "\n";
+
+        
+       // std::string fullPath = directory + "/" + std::string(path.C_Str());
         std::cout << "Proba zaladowania tekstury: " << fullPath << "\n";
 
         SDL_Surface* surface = IMG_Load(fullPath.c_str());
@@ -188,8 +192,8 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         GLenum format = (surface->format->BytesPerPixel == 4) ? GL_RGBA : GL_RGB;
-        //glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, surface->w, surface->h, 0, format, GL_UNSIGNED_BYTE, surface->pixels);
+        //glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surface->w, surface->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surface->pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
         
        // glGenerateMipmap(GL_TEXTURE_2D);
