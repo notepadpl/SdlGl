@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpxxd__kl6.js
+// include: /tmp/tmp1_mj0jlz.js
 
   if (!Module['expectedDataFileDownloads']) {
     Module['expectedDataFileDownloads'] = 0;
@@ -149,6 +149,7 @@ var REMOTE_PACKAGE_SIZE = metadata['remote_package_size'];
         if (!check) throw msg + new Error().stack;
       }
 Module['FS_createPath']("/", "asserts", true, true);
+Module['FS_createPath']("/asserts", "Harpy", true, true);
 
       /** @constructor */
       function DataRequest(start, end, audio) {
@@ -216,25 +217,25 @@ Module['FS_createPath']("/", "asserts", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/asserts/Belt.png", "start": 0, "end": 132076}, {"filename": "/asserts/Eye.png", "start": 132076, "end": 320448}, {"filename": "/asserts/Eyelashes.png", "start": 320448, "end": 420017}, {"filename": "/asserts/Face.png", "start": 420017, "end": 611138}, {"filename": "/asserts/Gloves.png", "start": 611138, "end": 740043}, {"filename": "/asserts/Guard.png", "start": 740043, "end": 851131}, {"filename": "/asserts/Hair.png", "start": 851131, "end": 1762140}, {"filename": "/asserts/Harpy.fbx", "start": 1762140, "end": 3176776}, {"filename": "/asserts/Inner.png", "start": 3176776, "end": 3345299}, {"filename": "/asserts/Jeans.png", "start": 3345299, "end": 3440886}, {"filename": "/asserts/Shoes.png", "start": 3440886, "end": 3568668}, {"filename": "/asserts/Skin.png", "start": 3568668, "end": 3719653}, {"filename": "/asserts/T-Shirt.png", "start": 3719653, "end": 3824004}, {"filename": "/asserts/Teeth.png", "start": 3824004, "end": 3920807}, {"filename": "/asserts/Tongue.png", "start": 3920807, "end": 4011879}], "remote_package_size": 4011879});
+    loadPackage({"files": [{"filename": "/asserts/Belt.png", "start": 0, "end": 132076}, {"filename": "/asserts/Eye.png", "start": 132076, "end": 320448}, {"filename": "/asserts/Eyelashes.png", "start": 320448, "end": 420017}, {"filename": "/asserts/Face.png", "start": 420017, "end": 611138}, {"filename": "/asserts/Gloves.png", "start": 611138, "end": 740043}, {"filename": "/asserts/Guard.png", "start": 740043, "end": 851131}, {"filename": "/asserts/Hair.png", "start": 851131, "end": 1762140}, {"filename": "/asserts/Harpy.fbx", "start": 1762140, "end": 3176776}, {"filename": "/asserts/Harpy/Tmp", "start": 3176776, "end": 3176777}, {"filename": "/asserts/Inner.png", "start": 3176777, "end": 3345300}, {"filename": "/asserts/Jeans.png", "start": 3345300, "end": 3440887}, {"filename": "/asserts/Shoes.png", "start": 3440887, "end": 3568669}, {"filename": "/asserts/Skin.png", "start": 3568669, "end": 3719654}, {"filename": "/asserts/T-Shirt.png", "start": 3719654, "end": 3824005}, {"filename": "/asserts/Teeth.png", "start": 3824005, "end": 3920808}, {"filename": "/asserts/Tongue.png", "start": 3920808, "end": 4011880}], "remote_package_size": 4011880});
 
   })();
 
-// end include: /tmp/tmpxxd__kl6.js
-// include: /tmp/tmpoijcilj8.js
+// end include: /tmp/tmp1_mj0jlz.js
+// include: /tmp/tmpiiwuch_b.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmpoijcilj8.js
-// include: /tmp/tmpgthasr4h.js
+  // end include: /tmp/tmpiiwuch_b.js
+// include: /tmp/tmpioq3gzo2.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmpgthasr4h.js
+  // end include: /tmp/tmpioq3gzo2.js
 
 
 // Sometimes an existing Module object exists with properties
