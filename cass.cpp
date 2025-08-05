@@ -149,6 +149,7 @@ void Mesh::cleanup() {
 }
 
 // --- Model (funkcje pomocnicze do ladowania tekstur) ---
+Model model;
 
 GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::string& directory) {
     if (mat->GetTextureCount(type) > 0) {
@@ -374,7 +375,7 @@ int main() {
         return 1;
     }
 
-    Model model;
+    //Model model;
     model.load("assets/Harpy.fbx", "assets");
     
     // Zastąp render() i loop() nowymi funkcjami
