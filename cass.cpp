@@ -1,4 +1,4 @@
-ja#include <SDL.h>
+#include <SDL.h>
 #include <SDL_image.h>
 #include <GLES2/gl2.h>
 #include <emscripten.h>
