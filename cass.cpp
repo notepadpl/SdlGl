@@ -1,4 +1,4 @@
-#include <SDL.h>
+ja#include <SDL.h>
 #include <SDL_image.h>
 #include <GLES2/gl2.h>
 #include <emscripten.h>
@@ -378,7 +378,7 @@ int main() {
         return 1;
     }
 std::cout << "Ladowanie modelu..." << std::endl;
-harpyModel.load("asserts/Harpy.fbx", "asserts/");
+harpyModel.load("asserts/Harpy.fbx", "asserts/Hair.png");
 std::cout << "Model zaladowany. Liczba meshy: " << harpyModel.meshes.size() << std::endl;
 
     //harpyModel.load("assets/Harpy.fbx", "assets");
