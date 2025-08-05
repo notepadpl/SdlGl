@@ -59,7 +59,6 @@ void main() {
 )";
 
 // --- Deklaracje klas ---
-
 struct Material {
     GLuint diffuse = 0;
     GLuint specular = 0;
@@ -90,10 +89,7 @@ public:
     void cleanup();
 };
 
-
 // --- Implementacja klas ---
-
-// --- Material ---
 void Material::bind(GLuint program) const {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, diffuse);
@@ -119,7 +115,6 @@ void Material::cleanup() {
     if (emissive) glDeleteTextures(1, &emissive);
 }
 
-// --- Mesh ---
 void Mesh::render(GLuint program) {
     material.bind(program);
 
@@ -148,8 +143,21 @@ void Mesh::cleanup() {
     material.cleanup();
 }
 
-// --- Model (funkcje pomocnicze do ladowania tekstur) ---
-Model model;
+// --- Funkcje pomocnicze do ładowania zasobów ---
+GLuint compileShader(GLenum type, const char* source) {
+    GLuint shader = glCreateShader(type);
+    glShaderSource(shader, 1, &source, nullptr);
+    glCompileShader(shader);
+
+    GLint success;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char infoLog[512];
+        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
+        std::cerr << "Shader compilation error: " << infoLog << "\n";
+    }
+    return shader;
+}
 
 GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::string& directory) {
     if (mat->GetTextureCount(type) > 0) {
@@ -277,24 +285,10 @@ void Model::cleanup() {
     meshes.clear();
 }
 
+// Deklaracja globalnego obiektu modelu
+Model harpyModel;
 
-// --- Funkcje główne programu (przeniesione z main.cpp) ---
-
-GLuint compileShader(GLenum type, const char* source) {
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, nullptr);
-    glCompileShader(shader);
-
-    GLint success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        char infoLog[512];
-        glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::cerr << "Shader compilation error: " << infoLog << "\n";
-    }
-    return shader;
-}
-
+// --- Funkcje główne programu ---
 bool init() {
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << "\n";
@@ -334,13 +328,23 @@ bool init() {
     return true;
 }
 
+void cleanup() {
+    harpyModel.cleanup();
+    SDL_GL_DeleteContext(glContext);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    IMG_Quit();
+}
+
+// Funkcja renderująca, która zostanie wywołana w pętli głównej
 void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // Tutaj będzie renderowany model
+    harpyModel.render(program, rotX, rotY);
     SDL_GL_SwapWindow(window);
 }
 
-void loop() {
+// Główna pętla, która będzie wywoływana przez Emscripten
+void main_loop() {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
@@ -361,51 +365,16 @@ void loop() {
     render();
 }
 
-void cleanup() {
-    SDL_GL_DeleteContext(glContext);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-    IMG_Quit();
-}
-
-// --- Główna funkcja main ---
 int main() {
     if (!init()) {
         std::cerr << "Inicjalizacja nie powiodla sie.\n";
         return 1;
     }
 
-    //Model model;
-    model.load("assets/Harpy.fbx", "assets");
+    harpyModel.load("assets/Harpy.fbx", "assets");
     
-    // Zastąp render() i loop() nowymi funkcjami
-    auto renderCallback = [&]() {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        model.render(program, rotX, rotY);
-        SDL_GL_SwapWindow(window);
-    };
-
-    auto loopCallback = [&]() {
-        SDL_Event e;
-        while (SDL_PollEvent(&e)) {
-            if (e.type == SDL_QUIT) emscripten_cancel_main_loop();
-            // ... (reszta kodu obslugi myszy)
-            else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT){
-                mouseDown = true; lastX = e.button.x; lastY = e.button.y;
-            } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT){
-                mouseDown = false;
-            } else if (e.type == SDL_MOUSEMOTION && mouseDown){
-                rotY += (e.motion.x - lastX) * 0.01f;
-                rotX += (e.motion.y - lastY) * 0.01f;
-                lastX = e.motion.x; lastY = e.motion.y;
-            }
-        }
-        renderCallback();
-    };
-
-    emscripten_set_main_loop(loopCallback, 0, 1);
+    emscripten_set_main_loop(main_loop, 0, 1);
     
-    model.cleanup();
     cleanup();
 
     return 0;
