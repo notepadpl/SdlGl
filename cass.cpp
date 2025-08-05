@@ -51,11 +51,18 @@ varying vec2 vUV;
 varying vec3 vNormal;
 
 void main() {
+    vec3 texColor = texture2D(tex, vUV).rgb;
+
+    // Światło – niech podkreśla teksturę
     vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
-    float diff = max(dot(vNormal, lightDir), 0.0);
-    vec3 color = texture2D(tex, vUV).rgb * (diff + 0.3);
+    float diff = max(dot(normalize(vNormal), lightDir), 0.0);
+
+    // Tekstura z lekkim światłem – nie za jasno, żeby model był przyciemniony
+    vec3 color = texColor * (0.4 + 0.6 * diff); // 0.4 bazowe + światło
+
     gl_FragColor = vec4(color, 1.0);
 }
+
 )";
 
 // --- Deklaracje klas ---
@@ -309,7 +316,7 @@ bool init() {
     }
 
     glViewport(0, 0, 640, 480);
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+    glClearColor(0.2f, 0.9f, 0.2f, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
     int imgFlags = IMG_INIT_PNG | IMG_INIT_JPG;
