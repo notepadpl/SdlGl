@@ -165,17 +165,39 @@ GLuint compileShader(GLenum type, const char* source) {
     }
     return shader;
 }
+void printAllMaterialTextures(aiMaterial* material) {
+    const std::vector<std::pair<aiTextureType, const char*>> textureTypes = {
+        {aiTextureType_DIFFUSE, "DIFFUSE"},
+        {aiTextureType_SPECULAR, "SPECULAR"},
+        {aiTextureType_NORMALS, "NORMALS"},
+        {aiTextureType_HEIGHT, "HEIGHT"},
+        {aiTextureType_EMISSIVE, "EMISSIVE"},
+        {aiTextureType_OPACITY, "OPACITY"},
+        {aiTextureType_AMBIENT, "AMBIENT"}
+    };
+
+    for (auto& [type, name] : textureTypes) {
+        int count = material->GetTextureCount(type);
+        std::cout << " - " << name << ": " << count << " tekstur\n";
+        for (int i = 0; i < count; ++i) {
+            aiString path;
+            if (material->GetTexture(type, i, &path) == AI_SUCCESS) {
+                std::cout << "    -> " << path.C_Str() << "\n";
+            }
+        }
+    }
+}
 
 GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::string& directory) {
     if (mat->GetTextureCount(type) > 0) {
         aiString path;
         mat->GetTexture(type, 0, &path);
-        std::string fullPath = directory + "/Hair.png"; // Wczytujemy "na sztywno"
+        //std::string fullPath = directory + "/Hair.png"; // Wczytujemy "na sztywno"
         
         std::cout << "Proba zaladowania tekstury: " << fullPath << "\n";
 
         
-       // std::string fullPath = directory + "/" + std::string(path.C_Str());
+    std::string fullPath = directory + "/" + std::string(path.C_Str());
         std::cout << "Proba zaladowania tekstury: " << fullPath << "\n";
 
         SDL_Surface* surface = IMG_Load(fullPath.c_str());
@@ -213,14 +235,16 @@ Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::strin
     }
 
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+printAllMaterialTextures(material);
+/*
     std::cout << "Assimp znalazl material dla mesha o indeksie: " << mesh->mMaterialIndex << std::endl;
 
-    // Wypisuj liczbę tekstur dla wszystkich głównych typów
+    Wypisuj liczbę tekstur dla wszystkich głównych typów
     std::cout << "  - Tekstur dyfuzyjnych (DIFFUSE): " << material->GetTextureCount(aiTextureType_DIFFUSE) << std::endl;
     std::cout << "  - Tekstur normalnych (NORMALS): " << material->GetTextureCount(aiTextureType_NORMALS) << std::endl;
     std::cout << "  - Tekstur spekularnych (SPECULAR): " << material->GetTextureCount(aiTextureType_SPECULAR) << std::endl;
     std::cout << "  - Tekstur emisyjnych (EMISSIVE): " << material->GetTextureCount(aiTextureType_EMISSIVE) << std::endl;
-
+*/
     // Tutaj nadal próbujemy załadować tylko dyfuzyjną
     mat.diffuse = loadTextureFromMaterial(material, aiTextureType_DIFFUSE, directory);
     // ... (reszta kodu ladowania materialu)
