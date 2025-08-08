@@ -1,3 +1,56 @@
+
+#include <assimp/scene.h>
+#include <iostream>
+
+// Wskaźnik na scenę załadowaną z modelu
+const aiScene* scene = nullptr; 
+
+// Aktualnie wybrana animacja
+unsigned int currentAnimationIndex = 0;
+
+// Funkcja do wypisania nazw animacji i kości
+void PrintAnimationsAndBones(const aiScene* scene) {
+    std::cout << "Animacje w scenie: " << scene->mNumAnimations << std::endl;
+    for (unsigned int i = 0; i < scene->mNumAnimations; i++) {
+        std::cout << "Animacja " << i << ": " << scene->mAnimations[i]->mName.C_Str() << std::endl;
+    }
+    std::cout << "Kości w scenie: " << std::endl;
+    for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
+        for (unsigned int b = 0; b < scene->mMeshes[m]->mNumBones; b++) {
+            std::cout << " - Kość: " << scene->mMeshes[m]->mBones[b]->mName.C_Str() << std::endl;
+        }
+    }
+}
+
+// Prosta funkcja do przełączania animacji (np. wywołujesz przy naciśnięciu klawisza)
+void SwitchAnimation(unsigned int newIndex) {
+    if (newIndex < scene->mNumAnimations) {
+        currentAnimationIndex = newIndex;
+        std::cout << "Przełączono na animację: " << scene->mAnimations[currentAnimationIndex]->mName.C_Str() << std::endl;
+    }
+}
+
+// Funkcja która symuluje "odtwarzanie" animacji i wypisuje pozycje kości (przykład)
+void PlayAnimation(float animationTime) {
+    if (!scene || scene->mNumAnimations == 0) return;
+
+    const aiAnimation* animation = scene->mAnimations[currentAnimationIndex];
+
+    double ticksPerSecond = animation->mTicksPerSecond != 0 ? animation->mTicksPerSecond : 25.0;
+    double timeInTicks = animationTime * ticksPerSecond;
+    double animationDuration = animation->mDuration;
+
+    double currentTick = fmod(timeInTicks, animationDuration);
+
+    std::cout << "Odtwarzanie animacji: " << animation->mName.C_Str() << " (tick: " << currentTick << ")" << std::endl;
+
+    for (unsigned int i = 0; i < animation->mNumChannels; i++) {
+        const aiNodeAnim* channel = animation->mChannels[i];
+        std::cout << "Kość: " << channel->mNodeName.C_Str() << std::endl;
+        // Tu możesz dodać interpolację pozycji/rotacji/skali według currentTick
+    }
+}
+
 h, żebym pomógł Ci przygotować szkielet takiego projektu? A może masz konkretny pomysł, który chcesz ze mną dopracować?
 
 Powiedziałeś(-aś):
