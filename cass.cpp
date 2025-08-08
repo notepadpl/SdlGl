@@ -191,7 +191,28 @@ void printAllMaterialTextures(aiMaterial* material) {
         }
     }
 }
+void PrintBonesInfo(const aiScene* scene) {
+    if (!scene) {
+        std::cout << "Brak sceny do analizy kości." << std::endl;
+        return;
+    }
 
+    for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
+        const aiMesh* mesh = scene->mMeshes[i];
+        std::cout << "Mesh " << i << " ma " << mesh->mNumBones << " kości:" << std::endl;
+
+        if (mesh->mNumBones == 0) {
+            std::cout << "  -- brak kości w tym meshu." << std::endl;
+            continue;
+        }
+
+        for (unsigned int j = 0; j < mesh->mNumBones; j++) {
+            const aiBone* bone = mesh->mBones[j];
+            std::cout << "  - Kość: " << bone->mName.C_Str() << std::endl;
+        }
+    }
+}
+    
 GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::string& directory) {
     if (mat->GetTextureCount(type) > 0) {
         aiString path;
@@ -240,6 +261,8 @@ Material loadMaterial(const aiScene* scene, const aiMesh* mesh, const std::strin
 
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 printAllMaterialTextures(material);
+    PrintBonesInfo(scene);
+
 /*
     std::cout << "Assimp znalazl material dla mesha o indeksie: " << mesh->mMaterialIndex << std::endl;
 
