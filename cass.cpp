@@ -166,7 +166,7 @@ GLuint compileShader(GLenum type, const char* source) {
     return shader;
 }
 void printAllMaterialTextures(aiMaterial* material) {
-    const std::vector<std::pair<aiTextureType, const char*>> textureTypes = {
+    std::vector<std::pair<aiTextureType, const char*>> textureTypes = {
         {aiTextureType_DIFFUSE, "DIFFUSE"},
         {aiTextureType_SPECULAR, "SPECULAR"},
         {aiTextureType_NORMALS, "NORMALS"},
@@ -176,9 +176,13 @@ void printAllMaterialTextures(aiMaterial* material) {
         {aiTextureType_AMBIENT, "AMBIENT"}
     };
 
-    for (auto& [type, name] : textureTypes) {
+    for (const std::pair<aiTextureType, const char*>& pair : textureTypes) {
+        aiTextureType type = pair.first;
+        const char* name = pair.second;
+
         int count = material->GetTextureCount(type);
         std::cout << " - " << name << ": " << count << " tekstur\n";
+
         for (int i = 0; i < count; ++i) {
             aiString path;
             if (material->GetTexture(type, i, &path) == AI_SUCCESS) {
@@ -194,7 +198,7 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
         mat->GetTexture(type, 0, &path);
         //std::string fullPath = directory + "/Hair.png"; // Wczytujemy "na sztywno"
         
-        std::cout << "Proba zaladowania tekstury: " << fullPath << "\n";
+        //std::cout << "Proba zaladowania tekstury: " << fullPath << "\n";
 
         
     std::string fullPath = directory + "/" + std::string(path.C_Str());
