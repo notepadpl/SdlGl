@@ -434,7 +434,7 @@ int main() {
         return 1;
     }
 std::cout << "Ladowanie modelu..." << std::endl;
-harpyModel.load("asserts/Harpy2.fbx", "asserts");
+harpyModel.load("asserts/Harpy.fbx", "asserts");
 std::cout << "Model zaladowany. Liczba meshy: " << harpyModel.meshes.size() << std::endl;
 
     //harpyModel.load("assets/Harpy.fbx", "assets");
