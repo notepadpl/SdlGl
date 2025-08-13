@@ -39,7 +39,7 @@ if (ENVIRONMENT_IS_NODE) {
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmpk7knj_a2.js
+// include: /tmp/tmp394nheag.js
 
   if (!Module['expectedDataFileDownloads']) {
     Module['expectedDataFileDownloads'] = 0;
@@ -221,21 +221,21 @@ Module['FS_createPath']("/asserts", "Harpy", true, true);
 
   })();
 
-// end include: /tmp/tmpk7knj_a2.js
-// include: /tmp/tmpdbg3n3bw.js
+// end include: /tmp/tmp394nheag.js
+// include: /tmp/tmppx41vji8.js
 
     // All the pre-js content up to here must remain later on, we need to run
     // it.
     if (Module['$ww'] || (typeof ENVIRONMENT_IS_PTHREAD != 'undefined' && ENVIRONMENT_IS_PTHREAD)) Module['preRun'] = [];
     var necessaryPreJSTasks = Module['preRun'].slice();
-  // end include: /tmp/tmpdbg3n3bw.js
-// include: /tmp/tmp867onpw3.js
+  // end include: /tmp/tmppx41vji8.js
+// include: /tmp/tmpyjayvltp.js
 
     if (!Module['preRun']) throw 'Module.preRun should exist because file support used it; did a pre-js delete it?';
     necessaryPreJSTasks.forEach((task) => {
       if (Module['preRun'].indexOf(task) < 0) throw 'All preRun tasks that exist before user pre-js code should remain after; did you replace Module or modify Module.preRun?';
     });
-  // end include: /tmp/tmp867onpw3.js
+  // end include: /tmp/tmpyjayvltp.js
 
 
 // Sometimes an existing Module object exists with properties
