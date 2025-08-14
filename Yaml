@@ -1,0 +1,79 @@
+name: Build and Deply SDL2 OpenGL Emscripten
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Emscripten SDK
+        run: |
+          git clone https://github.com/emscripten-core/emsdk.git
+          cd emsdk
+          ./emsdk install 3.1.65
+          ./emsdk activate 3.1.65
+        shell: bash
+ 
+      - name: Build Assimp (Emscripten)
+        run: |
+          source ./emsdk/emsdk_env.sh
+          git clone https://github.com/assimp/assimp.git
+          cd assimp
+          emcmake cmake \
+            -DASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT=OFF \
+            -DASSIMP_BUILD_OBJ_IMPORTER=ON \
+            -DASSIMP_BUILD_OBJ_IMPORTER=ON \
+            -DASSIMP_BUILD_FBX_IMPORTER=ON \
+            -DASSIMP_BUILD_GLTF_IMPORTER=OFF \
+            -DASSIMP_BUILD_SHARED_LIBS=OFF \
+            -DASSIMP_NO_EXPORT=ON \
+            -DASSIMP_BUILD_ZLIB=ON \
+            -DASSIMP_BUILD_TESTS=OFF \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=../emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake \
+            -DCMAKE_CROSSCOMPILING_EMULATOR=../emsdk/node/22.16.0_64bit/bin/node \
+            .
+          emmake make -j
+        shell: bash
+
+      - name: Check Assimp build output
+        run: |
+          ls -l assimp
+          ls -l assimp/lib
+          ls -l assimp/lib
+        shell: bash
+  
+      - name: Compile C++ to WebAssembly with Assimp
+        run: |
+          source ./emsdk/emsdk_env.sh
+          mkdir -p dist
+          em++ cass.cpp \
+            -Iassimp/include \
+            -Iassimp/code \
+            -Lassimp/lib \
+            -lassimp \
+            -s WASM=1 \
+            -s USE_SDL=2 \
+            -s USE_ZLIB=1 \
+            -s USE_SDL_IMAGE=2 \
+            -s SDL2_IMAGE_FORMATS='["png"]' \
+            -s FULL_ES2=1 \
+            -s MIN_WEBGL_VERSION=1 \
+            -s MAX_WEBGL_VERSION=1 \
+            --preload-file asserts \
+            -s ALLOW_MEMORY_GROWTH=1 \
+            -s ASYNCIFY \
+            -o dist/index.html
+        shell: bash
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: github.ref == 'refs/heads/main'
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
