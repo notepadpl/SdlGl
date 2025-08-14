@@ -434,9 +434,84 @@ void render() {
     harpyModel.render(program);
     SDL_GL_SwapWindow(window);
 }
-
-// Główna pętla, która będzie wywoływana przez Emscripten
 void main_loop() {
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            emscripten_cancel_main_loop();
+        } 
+        
+        // --- OBSŁUGA MYSZY (na komputerze) ---
+        else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+            mouseDown = true;
+            lastX = e.button.x;
+            lastY = e.button.y;
+        } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
+            mouseDown = false;
+        } else if (e.type == SDL_MOUSEMOTION && mouseDown) {
+            cameraRotY += (e.motion.x - lastX) * 0.01f;
+            cameraRotX += (e.motion.y - lastY) * 0.01f;
+            cameraRotX = glm::clamp(cameraRotX, -1.5f, 1.5f);
+            lastX = e.motion.x;
+            lastY = e.motion.y;
+        }
+        else if (e.type == SDL_MOUSEWHEEL) {
+            if (e.wheel.y > 0) { 
+                cameraDistance -= 0.5f;
+            } else if (e.wheel.y < 0) {
+                cameraDistance += 0.5f;
+            }
+            cameraDistance = glm::clamp(cameraDistance, 1.0f, 10.0f);
+        }
+
+        // --- OBSŁUGA DOTYKU (na telefonie/tablecie) ---
+        else if (e.type == SDL_FINGERDOWN) {
+            // Sprawdzamy liczbę palców na ekranie
+            int numFingers = SDL_GetNumTouchFingers(e.tfinger.touchId);
+
+            if (numFingers == 1) { // Pierwszy palec - do obrotu
+                mouseDown = true; 
+                lastX = e.tfinger.x * 640;
+                lastY = e.tfinger.y * 480;
+            } else if (numFingers == 2) { // Drugi palec - do zoomu
+                SDL_Finger* finger1 = SDL_GetTouchFinger(e.tfinger.touchId, 0);
+                SDL_Finger* finger2 = SDL_GetTouchFinger(e.tfinger.touchId, 1);
+                
+                if (finger1 && finger2) {
+                    float dx = (finger1->x - finger2->x) * 640;
+                    float dy = (finger1->y - finger2->y) * 480;
+                    initialFingerDistance = sqrt(dx*dx + dy*dy);
+                    zoomScale = 1.0f;
+                }
+            }
+        } else if (e.type == SDL_FINGERUP) {
+            mouseDown = false;
+        } else if (e.type == SDL_FINGERMOTION) {
+            int numFingers = SDL_GetNumTouchFingers(e.tfinger.touchId);
+
+            if (numFingers == 1 && mouseDown) { // Ruch jednym palcem (obrót)
+                cameraRotY += (e.tfinger.x * 640 - lastX) * 0.01f;
+                cameraRotX += (e.tfinger.y * 480 - lastY) * 0.01f;
+                cameraRotX = glm::clamp(cameraRotX, -1.5f, 1.5f);
+                lastX = e.tfinger.x * 640;
+                lastY = e.tfinger.y * 480;
+            } else if (numFingers == 2) { // Ruch dwoma palcami (zoom)
+                SDL_Finger* finger1 = SDL_GetTouchFinger(e.tfinger.touchId, 0);
+                SDL_Finger* finger2 = SDL_GetTouchFinger(e.tfinger.touchId, 1);
+                
+                if (finger1 && finger2 && initialFingerDistance > 0.001f) {
+                    float dx = (finger1->x - finger2->x) * 640;
+                    float dy = (finger1->y - finger2->y) * 480;
+                    float currentFingerDistance = sqrt(dx*dx + dy*dy);
+                    zoomScale = currentFingerDistance / initialFingerDistance;
+                }
+            }
+        }
+    }
+    render();
+}
+// Główna pętla, która będzie wywoływana przez Emscripten
+void main_loop2() {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
