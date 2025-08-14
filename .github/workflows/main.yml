@@ -58,7 +58,7 @@ jobs:
         run: |
           source ./emsdk/emsdk_env.sh
           mkdir -p dist
-          em++ fly.cpp \
+          em++ Cam.cpp \
             -Iassimp/include \
             -Iassimp/code \
             -Lassimp/lib \
