@@ -406,19 +406,20 @@ void render() {
     cameraPos = cameraTarget + orientation * cameraOffset;
 
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, orientation * worldUp);
-
+//3
     glm::mat4 model = glm::mat4(1.0f);
 
-// Przesunięcie, żeby postać była dobrze ustawiona
-model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
+//glm::mat4 model = glm::mat4(1.0f);
 
-// 👉 Obrót postaci wokół osi Y
-model = glm::rotate(model, modelRotationY, glm::vec3(0.0f, 1.0f, 0.0f));
-
-// Skalowanie
+// 👉 Najpierw skalowanie
 model = glm::scale(model, glm::vec3(0.1f));
 
-    // 4. Połączenie macierzy
+// 👉 Potem obrót wokół osi Y (czyli lokalnej osi modelu)
+model = glm::rotate(model, modelRotationY, glm::vec3(0.0f, 1.0f, 0.0f));
+
+// 👉 Potem przesunięcie – np. żeby stał na ziemi
+model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
+   // 4. Połączenie macierzy
     glm::mat4 mvp = projection * view * model;
 
     glUniformMatrix4fv(uniformMVPLoc, 1, GL_FALSE, glm::value_ptr(mvp));
