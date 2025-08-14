@@ -409,14 +409,14 @@ void render() {
 //3
     glm::mat4 model = glm::mat4(1.0f);
 
-//glm::mat4 model = glm::mat4(1.0f);
+// 👉 Przesunięcie – postać nad ziemią
+model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
 
-// 👉 Najpierw skalowanie
+// 👉 Obrót wokół osi X
+model = glm::rotate(model, modelRotationX, glm::vec3(1.0f, 0.0f, 0.0f));
+
+// 👉 Skalowanie
 model = glm::scale(model, glm::vec3(0.1f));
-
-// 👉 Potem obrót wokół osi Y (czyli lokalnej osi modelu)
-model = glm::rotate(model, modelRotationY, glm::vec3(0.0f, 1.0f, 0.0f));
-
 // 👉 Potem przesunięcie – np. żeby stał na ziemi
 model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
    // 4. Połączenie macierzy
