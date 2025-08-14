@@ -574,7 +574,7 @@ void main_loop() {
                 float dpadX = screenWidth - 100.0f;
                 float dpadY = screenHeight - 100.0f;
                 float cameraSpeed = 0.2f;
-
+                float halfSize = dpadSize / 2.0f;
                 // Sprawdzanie, czy dotyk jest w obrębie d-pada
                 if (touchX > dpadX - dpadSize * 1.5f && touchX < dpadX + dpadSize * 1.5f &&
                     touchY > dpadY - dpadSize * 1.5f && touchY < dpadY + dpadSize * 1.5f) {
