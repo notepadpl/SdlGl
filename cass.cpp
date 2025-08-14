@@ -36,7 +36,7 @@ void main(){
     mat3 Rx = mat3(1, 0, 0, 0, cx, -sx, 0, sx, cx);
     mat3 Ry = mat3(cy, 0, sy, 0, 1, 0, -sy, 0, cy);
     vec3 p = Ry * Rx * aPos;
-    gl_Position = vec4(p * 0.1, 1.0);
+    gl_Position = vec4(p * 0.5, 1.0);
     
     vNormal = normalize(Ry * Rx * aNormal);
     vUV = aUV;
@@ -57,7 +57,7 @@ void main() {
     vec3 lightDir = normalize(vec3(0.5, 1.0, 0.3));
     float diff = max(dot(normalize(vNormal), lightDir), 0.0);
 
-    // Tekstura z lekkim światłem – nie za jasno, żeby model był przyciemniony
+    // Tekstura z lekkim światłem – nie za jasno, żeby model był pzyciemniony
     vec3 color = texColor * (0.4 + 0.6 * diff); // 0.4 bazowe + światło
 
     gl_FragColor = vec4(color, 1.0);
