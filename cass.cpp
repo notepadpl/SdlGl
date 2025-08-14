@@ -213,7 +213,7 @@ GLuint loadTextureFromMaterial(aiMaterial* mat, aiTextureType type, const std::s
         //std::cout << "Proba zaladowania tekstury: " << fullPath << "\n";
 
         
-    std::string fullPath =  + std::string(path.C_Str());
+    std::string fullPath = std::string(path.C_Str());
         std::cout << "Proba zaladowania tekstury: " << fullPath << "\n";
 
         SDL_Surface* surface = IMG_Load(fullPath.c_str());
