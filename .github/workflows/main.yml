@@ -53,7 +53,7 @@ jobs:
         run: |
           source ./emsdk/emsdk_env.sh
           mkdir -p dist
-          em++ cass2.cpp \
+          em++ cass.cpp \
             -Iassimp/include \
             -Iassimp/code \
             -Lassimp/lib \
