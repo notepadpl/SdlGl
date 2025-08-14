@@ -420,8 +420,100 @@ void render() {
     harpyModel.render(program);
     SDL_GL_SwapWindow(window);
 }
-
 void main_loop() {
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            emscripten_cancel_main_loop();
+        } 
+        
+        // --- Sterowanie myszą ---
+        else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+            mouseDown = true;
+            lastX = e.button.x;
+            lastY = e.button.y;
+        } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
+            mouseDown = false;
+        } else if (e.type == SDL_MOUSEMOTION && mouseDown) {
+            // TERAZ PRAWIDŁOWO: Ruch w osi X myszy (lewo/prawo) kontroluje KĄT HORYZONTALNY kamery (Yaw)
+            cameraYaw += (e.motion.x - lastX) * rotationSpeed;
+            
+            // TERAZ PRAWIDŁOWO: Ruch w osi Y myszy (góra/dół) kontroluje KĄT WERTYKALNY kamery (Pitch)
+            // Ujemny znak, aby ruch myszki w dół przesuwał kamerę w dół.
+            cameraPitch -= (e.motion.y - lastY) * rotationSpeed; 
+
+            // Ograniczenie kąta Pitch, żeby nie przechodzić "za plecy"
+            cameraPitch = glm::clamp(cameraPitch, glm::radians(-89.0f), glm::radians(89.0f));
+
+            lastX = e.motion.x;
+            lastY = e.motion.y;
+        }
+        else if (e.type == SDL_MOUSEWHEEL) {
+            // Zoom (kółko myszy)
+            if (e.wheel.y > 0) { // Przybliżanie
+                cameraDistance -= 0.5f;
+            } else if (e.wheel.y < 0) { // Oddalanie
+                cameraDistance += 0.5f;
+            }
+            // Ograniczenie odległości
+            cameraDistance = glm::clamp(cameraDistance, 1.0f, 15.0f); 
+        }
+
+        // --- Sterowanie dotykiem (dostosowane) ---
+        else if (e.type == SDL_FINGERDOWN) {
+            int numFingers = SDL_GetNumTouchFingers(e.tfinger.touchId);
+            if (numFingers == 1) { 
+                mouseDown = true;
+                lastX = e.tfinger.x * 640;
+                lastY = e.tfinger.y * 480;
+            } else if (numFingers == 2) { 
+                SDL_Finger* finger1 = SDL_GetTouchFinger(e.tfinger.touchId, 0);
+                SDL_Finger* finger2 = SDL_GetTouchFinger(e.tfinger.touchId, 1);
+                
+                if (finger1 && finger2) {
+                    float dx = (finger1->x - finger2->x) * 640;
+                    float dy = (finger1->y - finger2->y) * 480;
+                    initialFingerDistance = sqrt(dx*dx + dy*dy);
+                }
+            }
+        } else if (e.type == SDL_FINGERUP) {
+            mouseDown = false;
+        } else if (e.type == SDL_FINGERMOTION) {
+            int numFingers = SDL_GetNumTouchFingers(e.tfinger.touchId);
+            if (numFingers == 1 && mouseDown) {
+                float xOffset = e.tfinger.x * 640 - lastX;
+                float yOffset = e.tfinger.y * 480 - lastY;
+                
+                // Obrót poziomy kamery (Yaw)
+                cameraYaw += xOffset * rotationSpeed;
+                // Obrót pionowy kamery (Pitch)
+                cameraPitch -= yOffset * rotationSpeed; // Ujemny, dla zgodności z myszą
+
+                cameraPitch = glm::clamp(cameraPitch, glm::radians(-89.0f), glm::radians(89.0f));
+                
+                lastX = e.tfinger.x * 640;
+                lastY = e.tfinger.y * 480;
+            } else if (numFingers == 2) {
+                SDL_Finger* finger1 = SDL_GetTouchFinger(e.tfinger.touchId, 0);
+                SDL_Finger* finger2 = SDL_GetTouchFinger(e.tfinger.touchId, 1);
+                
+                if (finger1 && finger2 && initialFingerDistance > 0.001f) {
+                    float dx = (finger1->x - finger2->x) * 640;
+                    float dy = (finger1->y - finger2->y) * 480;
+                    float currentFingerDistance = sqrt(dx*dx + dy*dy);
+                    
+                    float zoomDelta = initialFingerDistance - currentFingerDistance;
+                    cameraDistance += zoomDelta * zoomSpeed;
+                    
+                    initialFingerDistance = currentFingerDistance;
+                    cameraDistance = glm::clamp(cameraDistance, 1.0f, 15.0f);
+                }
+            }
+        }
+    }
+    render();
+}
+void main_loop2() {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
