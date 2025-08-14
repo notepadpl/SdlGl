@@ -30,6 +30,7 @@ float cameraYaw = 0.0f;
 float cameraPitch = 0.0f;
 glm::vec3 cameraTarget = glm::vec3(0.0f, 0.5f, 0.0f);
 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float modelRotationY = 0.0f;
 
 bool mouseDown = false;
 int lastX, lastY;
@@ -406,10 +407,16 @@ void render() {
 
     glm::mat4 view = glm::lookAt(cameraPos, cameraTarget, orientation * worldUp);
 
-    // 3. Macierz modelu
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-    model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
+
+// Przesunięcie, żeby postać była dobrze ustawiona
+model = glm::translate(model, glm::vec3(0.0f, -0.5f, 0.0f));
+
+// 👉 Obrót postaci wokół osi Y
+model = glm::rotate(model, modelRotationY, glm::vec3(0.0f, 1.0f, 0.0f));
+
+// Skalowanie
+model = glm::scale(model, glm::vec3(0.1f));
 
     // 4. Połączenie macierzy
     glm::mat4 mvp = projection * view * model;
@@ -481,18 +488,26 @@ void main_loop() {
         } else if (e.type == SDL_FINGERMOTION) {
             int numFingers = SDL_GetNumTouchFingers(e.tfinger.touchId);
             if (numFingers == 1 && mouseDown) {
-                float xOffset = e.tfinger.x * 640 - lastX;
-                float yOffset = e.tfinger.y * 480 - lastY;
-                
-                // Obrót poziomy kamery (Yaw)
-                cameraYaw += xOffset * rotationSpeed;
-                // Obrót pionowy kamery (Pitch)
-                cameraPitch -= yOffset * rotationSpeed; // Ujemny, dla zgodności z myszą
+    float x = e.tfinger.x * 640;
+    float y = e.tfinger.y * 480;
 
-                cameraPitch = glm::clamp(cameraPitch, glm::radians(-89.0f), glm::radians(89.0f));
-                
-                lastX = e.tfinger.x * 640;
-                lastY = e.tfinger.y * 480;
+    float xOffset = x - lastX;
+    float yOffset = y - lastY;
+
+    // 👇 Jeśli palec jest po lewej stronie ekranu (np. przy przycisku głośności)
+    if (x < 150) {
+        modelRotationY += xOffset * rotationSpeed;
+    } else {
+        // W przeciwnym razie obracamy kamerą
+        cameraYaw += xOffset * rotationSpeed;
+        cameraPitch -= yOffset * rotationSpeed;
+        cameraPitch = glm::clamp(cameraPitch, glm::radians(-89.0f), glm::radians(89.0f));
+    }
+
+    lastX = x;
+    lastY = y;
+
+            
             } else if (numFingers == 2) {
                 SDL_Finger* finger1 = SDL_GetTouchFinger(e.tfinger.touchId, 0);
                 SDL_Finger* finger2 = SDL_GetTouchFinger(e.tfinger.touchId, 1);
