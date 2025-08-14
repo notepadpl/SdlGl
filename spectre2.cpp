@@ -615,4 +615,37 @@ void main_loop() {
                 lastY = e.tfinger.y * screenHeight;
             } else if (numFingers == 2) {
                 SDL_Finger* finger1 = SDL_GetTouchFinger(e.tfinger.touchId, 0);
-                SDL_Finger* finger2 = SDL_GetTou
+       SDL_Finger* finger2 = SDL_GetTouchFinger(e.tfinger.touchId, 1);
+                
+                if (finger1 && finger2 && initialFingerDistance > 0.001f) {
+                    float dx = (finger1->x - finger2->x) * screenWidth;
+                    float dy = (finger1->y - finger2->y) * screenHeight;
+                    float currentFingerDistance = sqrt(dx*dx + dy*dy);
+                    
+                    float zoomDelta = initialFingerDistance - currentFingerDistance;
+                    cameraDistance += zoomDelta * 0.01f;
+                    
+                    cameraDistance = glm::clamp(cameraDistance, 1.0f, 10.0f);
+                    initialFingerDistance = currentFingerDistance;
+                }
+            }
+        }
+    }
+    render();
+}
+
+int main() {
+    if (!init()) {
+        std::cerr << "Inicjalizacja nie powiodla sie.\n";
+        return 1;
+    }
+    std::cout << "Ladowanie modelu..." << std::endl;
+    harpyModel.load("asserts/el.fbx", "asserts"); 
+    std::cout << "Model zaladowany. Liczba meshy: " << harpyModel.meshes.size() << std::endl;
+    
+    emscripten_set_main_loop(main_loop, 0, 1);
+    
+    cleanup();
+
+    return 0;
+}
