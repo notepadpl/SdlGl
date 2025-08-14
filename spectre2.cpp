@@ -524,8 +524,129 @@ void render() {
     SDL_GL_SwapWindow(window);
 }
 
-
 void main_loop() {
+    SDL_Event e;
+    while (SDL_PollEvent(&e)) {
+        if (e.type == SDL_QUIT) {
+            emscripten_cancel_main_loop();
+        } 
+        
+        // --- OBSŁUGA MYSZY ---
+        else if (e.type == SDL_MOUSEBUTTONDOWN && e.button.button == SDL_BUTTON_LEFT) {
+            mouseDown = true;
+            lastX = e.button.x;
+            lastY = e.button.y;
+        } else if (e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_LEFT) {
+            mouseDown = false;
+        } else if (e.type == SDL_MOUSEMOTION && mouseDown) {
+            float xoffset = e.motion.x - lastX;
+            float yoffset = lastY - e.motion.y;
+            lastX = e.motion.x;
+            lastY = e.motion.y;
+
+            float sensitivity = 0.1f;
+            xoffset *= sensitivity;
+            yoffset *= sensitivity;
+
+            yaw   += xoffset;
+            pitch += yoffset;
+
+            if(pitch > 89.0f) pitch = 89.0f;
+            if(pitch < -89.0f) pitch = -89.0f;
+        }
+        else if (e.type == SDL_MOUSEWHEEL) {
+            if (e.wheel.y > 0) { // Przybliż
+                cameraDistance -= 0.5f;
+            } else if (e.wheel.y < 0) { // Oddal
+                cameraDistance += 0.5f;
+            }
+            cameraDistance = glm::clamp(cameraDistance, 1.0f, 10.0f);
+        }
+
+        // --- OBSŁUGA DOTYKU ---
+        else if (e.type == SDL_FINGERDOWN) {
+            int numFingers = SDL_GetNumTouchFingers(e.tfinger.touchId);
+
+            if (numFingers == 1) { 
+                float touchX = e.tfinger.x * screenWidth;
+                float touchY = e.tfinger.y * screenHeight;
+                float dpadSize = 50.0f;
+                float dpadX = screenWidth - 100.0f;
+                float dpadY = screenHeight - 100.0f;
+                float cameraSpeed = 0.2f;
+
+                // Sprawdzanie, czy dotyk jest w obrębie d-pada
+                if (touchX > dpadX - dpadSize * 1.5f && touchX < dpadX + dpadSize * 1.5f &&
+                    touchY > dpadY - dpadSize * 1.5f && touchY < dpadY + dpadSize * 1.5f) {
+                    
+                    // Dotknięto d-pada
+                    if (touchX > dpadX - halfSize && touchX < dpadX + halfSize && touchY < dpadY - halfSize) {
+                        // Góra - poruszamy kamerą do przodu
+                        cameraDistance -= cameraSpeed;
+                    } else if (touchX > dpadX - halfSize && touchX < dpadX + halfSize && touchY > dpadY + halfSize) {
+                        // Dół - poruszamy kamerą do tyłu
+                        cameraDistance += cameraSpeed;
+                    }
+                    cameraDistance = glm::clamp(cameraDistance, 1.0f, 10.0f);
+
+                } else {
+                    // Dotyk poza d-padem - do obracania kamerą
+                    mouseDown = true;
+                    lastX = e.tfinger.x * screenWidth;
+                    lastY = e.tfinger.y * screenHeight;
+                }
+            } else if (numFingers == 2) { 
+                SDL_Finger* finger1 = SDL_GetTouchFinger(e.tfinger.touchId, 0);
+                SDL_Finger* finger2 = SDL_GetTouchFinger(e.tfinger.touchId, 1);
+                
+                if (finger1 && finger2) {
+                    float dx = (finger1->x - finger2->x) * screenWidth;
+                    float dy = (finger1->y - finger2->y) * screenHeight;
+                    initialFingerDistance = sqrt(dx*dx + dy*dy);
+                }
+            }
+        } else if (e.type == SDL_FINGERUP) {
+            mouseDown = false;
+        } else if (e.type == SDL_FINGERMOTION) {
+            int numFingers = SDL_GetNumTouchFingers(e.tfinger.touchId);
+
+            if (numFingers == 1 && mouseDown) {
+                float xoffset = e.tfinger.x * screenWidth - lastX;
+                float yoffset = lastY - e.tfinger.y * screenHeight;
+
+                float sensitivity = 0.1f;
+                xoffset *= sensitivity;
+                yoffset *= sensitivity;
+
+                yaw   += xoffset;
+                pitch += yoffset;
+
+                if(pitch > 89.0f) pitch = 89.0f;
+                if(pitch < -89.0f) pitch = -89.0f;
+                
+                lastX = e.tfinger.x * screenWidth;
+                lastY = e.tfinger.y * screenHeight;
+            } else if (numFingers == 2) {
+                SDL_Finger* finger1 = SDL_GetTouchFinger(e.tfinger.touchId, 0);
+                SDL_Finger* finger2 = SDL_GetTouchFinger(e.tfinger.touchId, 1);
+                
+                if (finger1 && finger2 && initialFingerDistance > 0.001f) {
+                    float dx = (finger1->x - finger2->x) * screenWidth;
+                    float dy = (finger1->y - finger2->y) * screenHeight;
+                    float currentFingerDistance = sqrt(dx*dx + dy*dy);
+                    
+                    float zoomDelta = initialFingerDistance - currentFingerDistance;
+                    cameraDistance += zoomDelta * 0.01f;
+                    
+                    cameraDistance = glm::clamp(cameraDistance, 1.0f, 10.0f);
+                    initialFingerDistance = currentFingerDistance;
+                }
+            }
+        }
+    }
+    render();
+}
+void main_loop2() {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
