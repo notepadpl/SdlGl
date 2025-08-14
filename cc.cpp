@@ -31,7 +31,7 @@ float cameraPitch = 0.0f;
 glm::vec3 cameraTarget = glm::vec3(0.0f, 0.5f, 0.0f);
 glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float modelRotationY = 0.0f;
-
+float modelRotationX = 0.0f;
 bool mouseDown = false;
 int lastX, lastY;
 
@@ -497,7 +497,7 @@ void main_loop() {
 
     // 👇 Jeśli palec jest po lewej stronie ekranu (np. przy przycisku głośności)
     if (x < 150) {
-        modelRotationY += xOffset * rotationSpeed;
+        modelRotationX += yOffset * rotationSpeed;
     } else {
         // W przeciwnym razie obracamy kamerą
         cameraYaw += xOffset * rotationSpeed;
