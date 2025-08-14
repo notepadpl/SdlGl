@@ -19,7 +19,12 @@ jobs:
           ./emsdk install 3.1.65
           ./emsdk activate 3.1.65
         shell: bash
- 
+      - name: Install dependencies
+        run: |
+          sudo apt update 
+          sudo apt install -y libglm-dev
+          git clone https://github.com/g-truc/glm.git
+          
       - name: Build Assimp (Emscripten)
         run: |
           source ./emsdk/emsdk_env.sh
@@ -53,11 +58,12 @@ jobs:
         run: |
           source ./emsdk/emsdk_env.sh
           mkdir -p dist
-          em++ cass.cpp \
+          em++ cam.cpp \
             -Iassimp/include \
             -Iassimp/code \
             -Lassimp/lib \
             -lassimp \
+            -Iglm \
             -s WASM=1 \
             -s USE_SDL=2 \
             -s USE_ZLIB=1 \
